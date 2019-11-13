@@ -6,12 +6,12 @@ FOS = 10;
 // material properties
 // ABS / PLA 
 Sy = 35.0; // MPa
-E = 2.3; // GPa
+E = 2.3*1000; // MPa
 
 function strain( 
     S, // Stress, MPa
-    E, // Elastic modulus, GPa 
-    ) = S / ( E * 1000 ); // strain, %/100
+    E, // Elastic modulus, MPa 
+    ) = S / E ; // strain, %/100
     
 function permissible_deflection(
     e_max, // maximum permissible strain, %/100
@@ -24,7 +24,7 @@ function permissible_deflection_solve_for_h(e_max, l, y) =
     
 function permissible_deflection_solve_for_l(e_max, h, y) =
     pow(y*h/(0.67*e_max),0.5);
-
+        
 module box_snap(
     // Main geometry
     y=false, // permissible deflection, mm
@@ -37,11 +37,10 @@ module box_snap(
     r_A=90, // removal angle, deg
     // Material properties
     Sy=Sy, // yield strength, MPa
-    E=E,   // elastic modulus, GPa
+    E=E,   // elastic modulus, MPa
     FOS=FOS, // Factor of safety, #
     // Deflection force
     P=false,  // Deflection force
-    Es=2000  // Secant modulus
     )
     {
     // strain (max permissible)
