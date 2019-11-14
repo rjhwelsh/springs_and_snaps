@@ -36,6 +36,18 @@ function deflection_force_solve_for_Z(e_max, l, E, P)
     = P*l/E/e_max;
 function deflection_force_solve_for_l(e_max, E, Z, P)
     = P/E/e_max/Z;
+    
+// Mating force
+function mating_force(
+    P, // N, deflection force (perpendicular to insertion)
+    A, // deg, mating angle
+    mu, // Coefficent of friction
+   ) =  ( friction_factor(A, mu) > 0 ? 
+          friction_factor(A, mu) * P :
+          1/0 ); // N
+   
+function friction_factor(A, mu)
+    = (mu + tan(A))/(1 - mu*tan(A));
  
 // Moment of area
 function moment_of_area_of_box(
@@ -82,14 +94,16 @@ module box_snap(
     b=false, // width @ root, mm
     // Head geometry
     t=$fs,  // travel distance, mm
-    i_A=60, // insert angle, deg
-    r_A=90, // removal angle, deg
+    i_A=45, // insert angle, deg
+    r_A=60, // removal angle, deg
     // Material properties
     Sy=Sy, // yield strength, MPa
     E=E,   // elastic modulus, MPa
     FOS=FOS, // Factor of safety, #
     // Deflection force
     P=false,  // Deflection force
+    // Mating forces
+    mu=0.5,   // coefficient of friction
     // Geometry 
     K=0.67   // Geometric factor 
     )
@@ -137,6 +151,13 @@ module box_snap(
     P = ( P ? P : deflection_force(e_max, l, E, Z));
     echo("Deflection force (N) = ", P);
     
+    // mating force
+    i_W = mating_force(P, i_A, mu);
+    r_W = mating_force(P, r_A, mu);
+
+    echo("Insertion force (N) = ", i_W);
+    echo("Removal force (N) = ", r_W);
+    
     // generate model
     rotate(a=90, 
     v=[1,0,0])
@@ -153,4 +174,4 @@ module box_snap(
 }
 
 // Demo
-box_snap(y=1, l=50, P=1);
+box_snap(y=1, l=50, P=1, mu=0.5);
