@@ -33,6 +33,11 @@ function deflection_force(
     Z // section modulus, mm^3
     ) = Z*E*e_max/l; // N
 
+function deflection_force_solve_for_Z(e_max, l, E, P)
+    = P*l/E/e_max;
+    
+function deflection_force_solve_for_l(e_max, E, Z, P)
+    = P/E/e_max/Z;
    
 function section_modulus(
     c, // distance between neutral fibre and outer fibre
@@ -47,6 +52,12 @@ function moment_of_area_of_box(
     b, // mm, width @ root
     h, // mm, thickness @ root
     ) = b*pow(h,3)/12; // mm^4
+    
+function moment_of_area_of_box_solve_for_b(h, I)
+    = I/(pow(h,3)/12); // mm
+    
+function moment_of_area_of_box_solve_for_h(b, I)
+    = pow(12*(I/b),1/3); // mm
 
 function section_modulus_of_box(
     b, // mm, width @ root 
@@ -56,6 +67,15 @@ function section_modulus_of_box(
         I = moment_of_area_of_box(b=b, h=h) // mm^4
         ); 
 
+function section_modulus_of_box_solve_for_b(h, Z)
+    = moment_of_area_of_box_solve_for_b(
+        h=h, 
+        c=Z*(h/2)); // Z * c = I
+        
+function section_modulus_of_box_solve_for_h(b, Z)
+    // analytic solution to:
+    // Z = bh^2/6
+    = pow(Z/b*6, 0.5);
         
 module box_snap(
     // Main geometry
@@ -106,7 +126,7 @@ module box_snap(
     // deflection force
     Z = section_modulus_of_box(
         b, 
-        h);      
+        h);   
     P = ( P ? P : deflection_force(
                 e_max,
                 l,
