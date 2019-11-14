@@ -1,5 +1,8 @@
 // Box shaped snap connector
 
+// Tolerance
+$fs = 0.2;
+
 // Factor of safety
 FOS = 10;
 
@@ -45,9 +48,15 @@ function mating_force(
    ) =  ( friction_factor(A, mu) > 0 ? 
           friction_factor(A, mu) * P :
           1/0 ); // N
+function mating_force_solve_for_A(P, mu, W)
+    = friction_factor_solve_for_A(
+        mu=mu, 
+        K=W/P);
    
 function friction_factor(A, mu)
     = (mu + tan(A))/(1 - mu*tan(A));
+function friction_factor_solve_for_A(mu, K)
+    = atan(K) - atan(mu);
  
 // Moment of area
 function moment_of_area_of_box(
@@ -95,7 +104,7 @@ module box_snap(
     // Head geometry
     t=$fs,  // travel distance, mm
     i_A=45, // insert angle, deg
-    r_A=60, // removal angle, deg
+    r_A=90, // removal angle, deg
     // Material properties
     Sy=Sy, // yield strength, MPa
     E=E,   // elastic modulus, MPa
@@ -104,6 +113,8 @@ module box_snap(
     P=false,  // Deflection force
     // Mating forces
     mu=0.5,   // coefficient of friction
+    i_W=false, // insert mating force, N
+    r_W=false, // removal mating force, N
     // Geometry 
     K=0.67   // Geometric factor 
     )
@@ -128,15 +139,7 @@ module box_snap(
     l = ( l ? l : permissible_deflection_solve_for_l(e_max, h, y, K));
     echo("Length of arm (mm) = ", l);
     echo("Elongation (max) (mm) = ", l*e_max);
-    
-    // head insertion travel 
-    i_t = y * tan(90 - i_A); // parallel travel on insertion 
-    r_t = y * tan(90 - r_A); // parallel travel on removal
-    
-    // length of head, total
-    echo("Length of head (mm) = ", t + i_t + r_t);
-    echo("Total length (mm) = ", t + i_t + r_t + l);
-    
+           
     // width @ root, mm
     b = ( b ? b : section_modulus_of_box_solve_for_b(
         h, 
@@ -151,10 +154,23 @@ module box_snap(
     P = ( P ? P : deflection_force(e_max, l, E, Z));
     echo("Deflection force (N) = ", P);
     
+    // mating angles
+    i_A = ( i_W ? mating_force_solve_for_A(P, mu, i_W) : i_A);
+    r_A = ( r_W ? mating_force_solve_for_A(P, mu, r_W) : r_A);
+    echo("Insertion angle (deg) = ", i_A);
+    echo("Removal angle (deg) = ", r_A);
+    
+    // head insertion travel 
+    i_t = y * tan(90 - i_A); // parallel travel on insertion 
+    r_t = y * tan(90 - r_A); // parallel travel on removal
+    
+    // length of head, total
+    echo("Length of head (mm) = ", t + i_t + r_t);
+    echo("Total length (mm) = ", t + i_t + r_t + l);
+    
     // mating force
-    i_W = mating_force(P, i_A, mu);
-    r_W = mating_force(P, r_A, mu);
-
+    i_W = (i_W ? i_W : mating_force(P, i_A, mu));
+    r_W = (r_W ? r_W : mating_force(P, r_A, mu));
     echo("Insertion force (N) = ", i_W);
     echo("Removal force (N) = ", r_W);
     
