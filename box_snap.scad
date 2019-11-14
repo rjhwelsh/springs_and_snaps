@@ -16,14 +16,15 @@ function strain(
 function permissible_deflection(
     e_max, // maximum permissible strain, %/100
     l,     // length of arm, mm
-    h     // thickness @ root, mm
-    ) = (0.67*e_max)*pow(l,2)/h;
+    h,     // thickness @ root, mm
+    K,     // geometric factor, 
+    ) = (K*e_max)*pow(l,2)/h;
     
-function permissible_deflection_solve_for_h(e_max, l, y) =
-    (0.67*e_max)*pow(l,2)/y;
+function permissible_deflection_solve_for_h(e_max, l, y, K=0.67) =
+    (K*e_max)*pow(l,2)/y;
     
-function permissible_deflection_solve_for_l(e_max, h, y) =
-    pow(y*h/(0.67*e_max),0.5);
+function permissible_deflection_solve_for_l(e_max, h, y, K=0.67) =
+    pow(y*h/(K*e_max),0.5);
 
     
 function deflection_force(
@@ -93,6 +94,8 @@ module box_snap(
     FOS=FOS, // Factor of safety, #
     // Deflection force
     P=false,  // Deflection force
+    // Geometry 
+    K=0.67   // Geometric factor 
     )
     {
     // strain (max permissible)
@@ -103,15 +106,16 @@ module box_snap(
     y = ( y ? y : permissible_deflection(
             e_max=e_max,
             l=l,
-            h=h));
+            h=h,
+            K=K));
     echo("Permissible deflection (mm) = ", y);
      
     // thickness @ root, mm
-    h = ( h ? h : permissible_deflection_solve_for_h(e_max, l, y));
+    h = ( h ? h : permissible_deflection_solve_for_h(e_max, l, y, K));
     echo("Thickness @ root (mm) = ", h);
          
     // length of arm, mm
-    l = ( l ? l : permissible_deflection_solve_for_l(e_max, h, y));
+    l = ( l ? l : permissible_deflection_solve_for_l(e_max, h, y, K));
     echo("Length of arm (mm) = ", l);
     echo("Elongation (max) (mm) = ", l*e_max);
     
