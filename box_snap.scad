@@ -70,7 +70,7 @@ function section_modulus_of_box(
 function section_modulus_of_box_solve_for_b(h, Z)
     = moment_of_area_of_box_solve_for_b(
         h=h, 
-        c=Z*(h/2)); // Z * c = I
+        I=Z*(h/2)); // Z * c = I
         
 function section_modulus_of_box_solve_for_h(b, Z)
     // analytic solution to:
@@ -106,14 +106,14 @@ module box_snap(
             h=h));
     echo("Permissible deflection (mm) = ", y);
      
-    // width @ root, mm
+    // thickness @ root, mm
     h = ( h ? h : permissible_deflection_solve_for_h(e_max, l, y));
-    echo("Width @ root (mm) = ", h);
+    echo("Thickness @ root (mm) = ", h);
          
     // length of arm, mm
     l = ( l ? l : permissible_deflection_solve_for_l(e_max, h, y));
     echo("Length of arm (mm) = ", l);
-    echo("Elongation (max) (mm) = ", l*e_max);  
+    echo("Elongation (max) (mm) = ", l*e_max);
     
     // head insertion travel 
     i_t = y * tan(90 - i_A); // parallel travel on insertion 
@@ -123,15 +123,18 @@ module box_snap(
     echo("Length of head (mm) = ", t + i_t + r_t);
     echo("Total length (mm) = ", t + i_t + r_t + l);
     
+    // width @ root, mm
+    b = ( b ? b : section_modulus_of_box_solve_for_b(
+        h, 
+        Z = P*l/E/e_max));
+    echo("Width @ root (mm) = ", b);
+    
     // deflection force
     Z = section_modulus_of_box(
         b, 
-        h);   
-    P = ( P ? P : deflection_force(
-                e_max,
-                l,
-                E, 
-                Z));
+        h);
+        
+    P = ( P ? P : deflection_force(e_max, l, E, Z));
     echo("Deflection force (N) = ", P);
     
     // generate model
@@ -149,4 +152,4 @@ module box_snap(
         ]);
 }
 
-box_snap(y=1, l=50, b=10);
+box_snap(y=1, l=50, P=1);
