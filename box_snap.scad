@@ -11,6 +11,11 @@ FOS = 10;
 Sy = 35.0; // MPa
 E = 2.3*1000; // MPa
 
+function stress(
+    F, // Force, N
+    A  // Area, mm^2
+    ) = F/A; // stress, MPa
+
 function strain( 
     S, // Stress, MPa
     E, // Elastic modulus, MPa 
@@ -183,7 +188,7 @@ module snap_rectangle(
     
     // generate model
     if (geometry==1) {
-        // Box snap
+        // Box snap   
         rotate(a=90, 
         v=[1,0,0])
         linear_extrude(height=b, center=true)
@@ -252,8 +257,34 @@ module snap_rectangle(
                [7,0,8,15]],
                convexity=10);
     }
+    
+    
+    // Post-calcs   
+    Area = (geometry==1 ? b*h :
+            (geometry==2 ? b*h/2 :
+            (geometry==3 ? b*h/4 : 
+          b*h)));  
+    msg1 = "Warning! Exceeds FOS";
+    msg2 = "Warning!! Exceeds Yield Stress";
+
+    echo("Insertion stress (MPa)", stress(i_W, Area));
+    
+    // assert( stress(i_W, Area) > Sy , msg2);
+    // assert( stress(i_W, Area) > Sy/FOS, msg1);
+    
+    if ( stress(i_W, Area) > Sy ) {echo(msg2);}
+    else if ( stress(i_W, Area) > Sy/FOS ) {echo(msg1);}
+   
+    
+    echo("Removal stress (MPa)", stress(r_W, Area));
+    if ( stress(r_W, Area) > Sy ) {echo(msg2);}
+    else if ( stress(r_W, Area) > Sy/FOS ) {echo(msg1);}
+    
         
 }
+
+
+
 
 
 // Demo
