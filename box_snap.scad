@@ -3,7 +3,7 @@
 // Factor of safety
 FOS = 10;
 
-// material properties
+// Material properties
 // ABS / PLA 
 Sy = 35.0; // MPa
 E = 2.3*1000; // MPa
@@ -12,34 +12,43 @@ function strain(
     S, // Stress, MPa
     E, // Elastic modulus, MPa 
     ) = S / E ; // strain, %/100
-    
+ 
+// Permissible deflection 
 function permissible_deflection(
     e_max, // maximum permissible strain, %/100
     l,     // length of arm, mm
     h,     // thickness @ root, mm
     K,     // geometric factor, 
-    ) = (K*e_max)*pow(l,2)/h;
-    
+    ) = (K*e_max)*pow(l,2)/h;   
 function permissible_deflection_solve_for_h(e_max, l, y, K=0.67) =
-    (K*e_max)*pow(l,2)/y;
-    
+    (K*e_max)*pow(l,2)/y; 
 function permissible_deflection_solve_for_l(e_max, h, y, K=0.67) =
     pow(y*h/(K*e_max),0.5);
 
-    
+// Deflection force   
 function deflection_force(
     e_max, // maximum permissible strain, %/100
     l, // length of arm, mm
     E, // elastic modulus, MPa
     Z // section modulus, mm^3
     ) = Z*E*e_max/l; // N
-
 function deflection_force_solve_for_Z(e_max, l, E, P)
     = P*l/E/e_max;
-    
 function deflection_force_solve_for_l(e_max, E, Z, P)
     = P/E/e_max/Z;
-   
+ 
+// Moment of area
+function moment_of_area_of_box(
+    // Ix = integral(A=area){y^2} dA (about the x-axis)
+    b, // mm, width @ root
+    h, // mm, thickness @ root
+    ) = b*pow(h,3)/12; // mm^4   
+function moment_of_area_of_box_solve_for_b(h, I)
+    = I/(pow(h,3)/12); // mm   
+function moment_of_area_of_box_solve_for_h(b, I)
+    = pow(12*(I/b),1/3); // mm
+
+// Section modulus 
 function section_modulus(
     c, // distance between neutral fibre and outer fibre
     I  // axial moment of inertia 
@@ -48,18 +57,6 @@ function section_modulus(
     //       c = distance between neutral fibre and outer fibre
     ) = I/c; // mm^3
     
-function moment_of_area_of_box(
-    // Ix = integral(A=area){y^2} dA (about the x-axis)
-    b, // mm, width @ root
-    h, // mm, thickness @ root
-    ) = b*pow(h,3)/12; // mm^4
-    
-function moment_of_area_of_box_solve_for_b(h, I)
-    = I/(pow(h,3)/12); // mm
-    
-function moment_of_area_of_box_solve_for_h(b, I)
-    = pow(12*(I/b),1/3); // mm
-
 function section_modulus_of_box(
     b, // mm, width @ root 
     h, // mm, thickness @ root
@@ -67,17 +64,16 @@ function section_modulus_of_box(
         c = h/2,
         I = moment_of_area_of_box(b=b, h=h) // mm^4
         ); 
-
 function section_modulus_of_box_solve_for_b(h, Z)
     = moment_of_area_of_box_solve_for_b(
         h=h, 
-        I=Z*(h/2)); // Z * c = I
-        
+        I=Z*(h/2)); // Z * c = I       
 function section_modulus_of_box_solve_for_h(b, Z)
     // analytic solution to:
     // Z = bh^2/6
     = pow(Z/b*6, 0.5);
-        
+
+// Main       
 module box_snap(
     // Main geometry
     y=false, // permissible deflection, mm
@@ -156,4 +152,5 @@ module box_snap(
         ]);
 }
 
+// Demo
 box_snap(y=1, l=50, P=1);
