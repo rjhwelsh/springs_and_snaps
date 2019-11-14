@@ -24,6 +24,38 @@ function permissible_deflection_solve_for_h(e_max, l, y) =
     
 function permissible_deflection_solve_for_l(e_max, h, y) =
     pow(y*h/(0.67*e_max),0.5);
+
+    
+function deflection_force(
+    e_max, // maximum permissible strain, %/100
+    l, // length of arm, mm
+    E, // elastic modulus, MPa
+    Z // section modulus, mm^3
+    ) = Z*E*e_max/l; // N
+
+   
+function section_modulus(
+    c, // distance between neutral fibre and outer fibre
+    I  // axial moment of inertia 
+    // Z = I/c, 
+    // where I = axial moment of inertia
+    //       c = distance between neutral fibre and outer fibre
+    ) = I/c; // mm^3
+    
+function moment_of_area_of_box(
+    // Ix = integral(A=area){y^2} dA (about the x-axis)
+    b, // mm, width @ root
+    h, // mm, thickness @ root
+    ) = b*pow(h,3)/12; // mm^4
+
+function section_modulus_of_box(
+    b, // mm, width @ root 
+    h, // mm, thickness @ root
+    ) = section_modulus(
+        c = h/2,
+        I = moment_of_area_of_box(b=b, h=h) // mm^4
+        ); 
+
         
 module box_snap(
     // Main geometry
@@ -70,6 +102,17 @@ module box_snap(
     // length of head, total
     echo("Length of head (mm) = ", t + i_t + r_t);
     echo("Total length (mm) = ", t + i_t + r_t + l);
+    
+    // deflection force
+    Z = section_modulus_of_box(
+        b, 
+        h);      
+    P = ( P ? P : deflection_force(
+                e_max,
+                l,
+                E, 
+                Z));
+    echo("Deflection force (N) = ", P);
     
     // generate model
     rotate(a=90, 
