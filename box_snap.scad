@@ -114,6 +114,7 @@ module snap_rectangle(
     Sy=Sy, // yield strength, MPa
     E=E,   // elastic modulus, MPa
     FOS=FOS, // Factor of safety, #
+    e_max=false, // Maximum rated strain
     // Deflection force
     P=false,  // Deflection force
     // Mating forces
@@ -132,9 +133,11 @@ module snap_rectangle(
           1/3)));  
     
     // strain (max permissible)
-    e_max = strain(S=Sy/FOS, E=E);
+    e_max = (e_max ? e_max : strain(S=Sy/FOS, E=E));
     echo("Strain (max) (%/100) = ", e_max);
-    
+    FOS = ( e_max ? Sy/(E*e_max) : FOS );
+    echo("Factor of Safety = ", FOS);
+        
     // permissible deflection, mm   
     y = ( y ? y : permissible_deflection(
             e_max=e_max,
