@@ -280,7 +280,7 @@ module snap_rectangle(
     if ( stress(r_W, Area) > Sy ) {echo(msg2);}
     else if ( stress(r_W, Area) > Sy/FOS ) {echo(msg1);}
     
-        
+    echo("Axial yield force (N) = ", Sy*Area);   
 }
 
 
