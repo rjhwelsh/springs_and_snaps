@@ -59,11 +59,17 @@ function mating_force_solve_for_A(P, mu, W)
     = friction_factor_solve_for_A(
         mu=mu, 
         K=W/P);
+function mating_force_solve_for_mu(P, A, W)
+    = friction_factor_solve_for_mu(
+        A=A,
+        K=W/P);
    
 function friction_factor(A, mu)
     = (mu + tan(A))/(1 - mu*tan(A));
 function friction_factor_solve_for_A(mu, K)
     = atan(K) - atan(mu);
+function friction_factor_solve_for_mu(A, K)
+    = tan(max([atan(K) - A, 0]));
  
 // Moment of area
 function moment_of_area_of_box(
