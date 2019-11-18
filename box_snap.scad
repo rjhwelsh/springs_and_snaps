@@ -44,6 +44,8 @@ function deflection_force_solve_for_Z(e_max, l, E, P)
     = P*l/E/e_max;
 function deflection_force_solve_for_l(e_max, E, Z, P)
     = P/E/e_max/Z;
+function deflection_force_solve_for_E(e_max, l, Z, P)
+    = P*l/e_max/Z;
     
 // Mating force
 function mating_force(
