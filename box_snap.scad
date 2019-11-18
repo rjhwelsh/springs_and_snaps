@@ -131,9 +131,16 @@ module snap_rectangle(
     r_W=false, // removal mating force, N
     // Geometry 
     geometry=1, // 2d side geometry
+    // Metadata
+    title="Untitled rectangular snap",
+    border1="#############################",
+    border2="_____________________________"
     )
     {
-      
+    echo(border1);
+    echo(title);
+    echo(border2);
+        
     // K, geometric factor
     K = (geometry==1 ? 0.67 :
         (geometry==2 ? 1.09 :
@@ -145,6 +152,7 @@ module snap_rectangle(
     echo("Strain (max) (%/100) = ", e_max);
     FOS = ( e_max ? Sy/(E*e_max) : FOS );
     echo("Factor of Safety = ", FOS);
+    echo(border2);
         
     // permissible deflection, mm   
     y = ( y ? y : permissible_deflection(
@@ -168,6 +176,7 @@ module snap_rectangle(
         h, 
         Z = P*l/E/e_max));
     echo("Width @ root (mm) = ", b);
+    echo(border2);
     
     // deflection force
     Z = section_modulus_of_box(
@@ -196,6 +205,7 @@ module snap_rectangle(
     r_W = (r_W ? r_W : mating_force(P, r_A, mu));
     echo("Insertion force (N) = ", i_W);
     echo("Removal force (N) = ", r_W);
+    echo(border2);
     
     // generate model
     if (geometry==1) {
@@ -270,7 +280,8 @@ module snap_rectangle(
     }
     
     
-    // Post-calcs   
+    // Post-calcs 
+    echo(border2); 
     Area = (geometry==1 ? b*h :
             (geometry==2 ? b*h/2 :
             (geometry==3 ? b*h/4 : 
@@ -291,18 +302,16 @@ module snap_rectangle(
     if ( stress(r_W, Area) > Sy ) {echo(msg2);}
     else if ( stress(r_W, Area) > Sy/FOS ) {echo(msg1);}
     
-    echo("Axial yield force (N) = ", Sy*Area);   
+    echo("Axial yield force (N) = ", Sy*Area);
+    echo(border2);
 }
 
 
-
-
-
 // Demo
-snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=1, t=1);
+snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=1, t=1, title="Geometry 1");
 
 translate([0,-20,0])
-snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=2, t=1);
+snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=2, t=1, title="Geometry 2");
 
 translate([0,-40,0])
-snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=3, t=1);
+snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=3, t=1, title="Geometry 3");
