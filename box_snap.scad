@@ -279,58 +279,19 @@ module snap_rectangle(
 		// generate model
 		if (geometry==1) {
 				 // Box snap
-				 rotate(a=90,
-								v=[1,0,0])
-							linear_extrude(height=b, center=true)
-							polygon(points = [
-													 [0, 0],
-													 [0, -h],
-													 [-l, -h],
-													 [-l, 0]
-													 ]);
-				 snap_head(h=h);
+				 snap_neck();
+				 snap_head();
 		}
 		else if (geometry==2) {
 				 // Half snap h->h/2
-				 h2 = h/2;
-				 rotate(a=90,
-								v=[1,0,0])
-							linear_extrude(height=b, center=true)
-							polygon(points = [
-													 [0, 0],
-													 [0, -h2],
-													 [-l, -h],
-													 [-l, 0]
-													 ]);
+				 h2=h/2;
+				 snap_neck(h2=h2);
 				 snap_head(h=h2, a=atan(h2/l));
 		}
 		else if (geometry==3) {
 				 // Quarter snap b -> b/4
 				 b2 = b/4;
-				 points = [
-							// Left
-							[0, 0, b2/2], //0
-							[0, -h, b2/2],
-							[-l, -h, b/2],
-							[-l, 0, b/2], //3
-							// Right
-							[0, 0, -b2/2], //4
-							[0, -h, -b2/2],
-							[-l, -h, -b/2],
-							[-l, 0, -b/2] //7
-							];
-
-				 rotate(a=90,
-								v=[1,0,0])
-							polyhedron(points=points,
-												 faces=[
-															[0,1,2,3],
-															[4,5,6,7],
-															[0,1,5,4],
-															[1,2,6,5],
-															[2,3,7,6],
-															[3,0,4,7]],
-												 convexity=10);
+				 snap_neck(b2=b2);
 				 snap_head(h=h, b=b2);
 		}
 
