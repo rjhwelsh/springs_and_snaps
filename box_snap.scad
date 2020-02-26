@@ -206,77 +206,92 @@ module snap_rectangle(
     echo("Insertion force (N) = ", i_W);
     echo("Removal force (N) = ", r_W);
     echo(border2);
-    
-    // generate model
-    if (geometry==1) {
-        // Box snap   
-        rotate(a=90, 
-        v=[1,0,0])
-        linear_extrude(height=b, center=true)
-        polygon(points = [
-            [0, 0],
-            [r_t, y],
-            [r_t + t, y],
-            [r_t + t + i_t, 0],
-            [r_t + t + i_t, -h],
-            [-l, -h],
-            [-l, 0]
-            ]);
-    }
-    else if (geometry==2) {
-        // Half snap h->h/2
-        h2 = h/2;
-        rotate(a=90, 
-        v=[1,0,0])
-        linear_extrude(height=b, center=true)
-        polygon(points = [
-            [0, 0],
-            [r_t, y],
-            [r_t + t, y],
-            [r_t + t + i_t, 0],
-            [r_t + t + i_t, -h2],
-            [-l, -h],
-            [-l, 0]
-            ]);  
-    }
-    else if (geometry==3) {
-        // Quarter snap b -> b/4
-        b2 = b/4;
-        points = [
-            // Left
-            [0, 0, b2/2], //0
-            [r_t, y, b2/2],
-            [r_t + t, y, b2/2],
-            [r_t + t + i_t, 0, b2/2],
-            [r_t + t + i_t, -h, b2/2],
-            [0, -h, b2/2],
-            [-l, -h, b/2],
-            [-l, 0, b/2], //7
-            // Right
-            [0, 0, -b2/2], //8
-            [r_t, y, -b2/2],
-            [r_t + t, y, -b2/2],
-            [r_t + t + i_t, 0, -b2/2],
-            [r_t + t + i_t, -h, -b2/2],
-            [0, -h, -b2/2],
-            [-l, -h, -b/2],
-            [-l, 0, -b/2] //15
-            ];
-        
-        rotate(a=90, 
-        v=[1,0,0])
-        polyhedron(points=points, 
-        faces=[[0,1,2,3,4,5,6,7], 
-               [8,9,10,11,12,13,14,15],
-               [0,1,9,8],
-               [1,2,10,9],
-               [2,3,11,10],
-               [3,4,12,11],
-               [4,5,13,12],
-               [5,6,14,13],
-               [6,7,15,14],
-               [7,0,8,15]],
-               convexity=10);
+
+
+		module snap_head(h, a=0) {
+				 // h = depth of snap head (from (0,0))
+				 // a = angle of length i.e. atan(dh/L), 0=flat
+				 let(dL = r_t + t + i_t)
+							rotate(a=90,
+										 v=[1,0,0])
+							linear_extrude(height=b, center=true)
+							polygon(points = [
+													 [0, 0],
+													 [r_t, y],
+													 [r_t + t, y],
+													 [r_t + t + i_t, 0],
+													 [r_t + t + i_t, -h + dL*tan(a)],
+													 [0, -h]
+													 ]);
+		}
+
+
+		// generate model
+		if (geometry==1) {
+				 // Box snap
+				 rotate(a=90,
+								v=[1,0,0])
+							linear_extrude(height=b, center=true)
+							polygon(points = [
+													 [0, 0],
+													 [0, -h],
+													 [-l, -h],
+													 [-l, 0]
+													 ]);
+				 snap_head(h=h);
+		}
+		else if (geometry==2) {
+				 // Half snap h->h/2
+				 h2 = h/2;
+				 rotate(a=90,
+								v=[1,0,0])
+							linear_extrude(height=b, center=true)
+							polygon(points = [
+													 [0, 0],
+													 [0, -h2],
+													 [-l, -h],
+													 [-l, 0]
+													 ]);
+				 snap_head(h=h2, a=atan(h2/l));
+		}
+		else if (geometry==3) {
+				 // Quarter snap b -> b/4
+				 b2 = b/4;
+				 points = [
+							// Left
+							[0, 0, b2/2], //0
+							[r_t, y, b2/2],
+							[r_t + t, y, b2/2],
+							[r_t + t + i_t, 0, b2/2],
+							[r_t + t + i_t, -h, b2/2],
+							[0, -h, b2/2],
+							[-l, -h, b/2],
+							[-l, 0, b/2], //7
+							// Right
+							[0, 0, -b2/2], //8
+							[r_t, y, -b2/2],
+							[r_t + t, y, -b2/2],
+							[r_t + t + i_t, 0, -b2/2],
+							[r_t + t + i_t, -h, -b2/2],
+							[0, -h, -b2/2],
+							[-l, -h, -b/2],
+							[-l, 0, -b/2] //15
+							];
+
+				 rotate(a=90,
+								v=[1,0,0])
+							polyhedron(points=points,
+												 faces=[[0,1,2,3,4,5,6,7],
+																[8,9,10,11,12,13,14,15],
+																[0,1,9,8],
+																[1,2,10,9],
+																[2,3,11,10],
+																[3,4,12,11],
+																[4,5,13,12],
+																[5,6,14,13],
+																[6,7,15,14],
+																[7,0,8,15]],
+												 convexity=10);
     }
     
     
