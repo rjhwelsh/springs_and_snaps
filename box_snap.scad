@@ -245,6 +245,36 @@ module snap_rectangle(
 												 convexity=10);
 		}
 
+		module snap_neck(h=h, l=l, b=b, h2=h, b2=b) {
+				 // h = depth of snap neck (from (0,0)) default:h
+				 // h2 = depth at snap head default:h
+				 // l = length of snap neck default:l
+				 // b = width of snap root (across y-axis) default:b
+				 // b2 = width at snap head default:b
+				 let(points = [// Left
+									[0, 0, b2/2], //0
+									[0, -h2, b2/2],
+									[-l, -h, b/2],
+									[-l, 0, b/2], //3
+									// Right
+									[0, 0, -b2/2], //4
+									[0, -h2, -b2/2],
+									[-l, -h, -b/2],
+									[-l, 0, -b/2] //7
+									],
+						 faces=[
+									[0,1,2,3],
+									[4,5,6,7],
+									[0,1,5,4],
+									[1,2,6,5],
+									[2,3,7,6],
+									[3,0,4,7]]
+							)
+							rotate(a=90,
+										 v=[1,0,0])
+							polyhedron(points=points, faces=faces, convexity=10);
+		}
+
 
 		// generate model
 		if (geometry==1) {
