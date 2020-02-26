@@ -248,22 +248,38 @@ module snap_rectangle(
 												 convexity=10);
 		}
 
-		module snap_neck(h=h, l=l, b=b, h2=h, b2=b) {
+		module snap_neck(h=h, l=l, b=b, h2=h, b2=b, l_start=0, l_end=l) {
 				 // h = depth of snap neck (from (0,0)) default:h
-				 // h2 = depth at snap head default:h
 				 // l = length of snap neck default:l
 				 // b = width of snap root (across y-axis) default:b
+				 // Specify varying dimensions; h, b
+				 // h2 = depth at snap head default:h
 				 // b2 = width at snap head default:b
-				 let(points = [// Left
-									[0, 0, b2/2], //0
-									[0, -h2, b2/2],
-									[-l, -h, b/2],
-									[-l, 0, b/2], //3
+				 // Specify a section of snap_neck only:
+				 // l_start = length at which to start default: 0
+				 // l_end   = length at which to end   default: l
+				 let(dh = h - h2,
+						 db = (b - b2)/2,
+
+						 ang_h = atan(dh/l),
+						 ang_b = atan(db/l),
+
+						 h_start = h2 + l_start*tan(ang_h),
+						 h_end = h2 + l_end*tan(ang_h),
+
+						 b_start = b2 + l_start*tan(ang_b),
+						 b_end = b2 + l_end*tan(ang_b),
+
+						 points = [// Left
+									[-l_start, 0, b_start/2], //0
+									[-l_start, -h_start, b_start/2],
+									[-l_end, -h_end, b_end/2],
+									[-l_end, 0, b_end/2], //3
 									// Right
-									[0, 0, -b2/2], //4
-									[0, -h2, -b2/2],
-									[-l, -h, -b/2],
-									[-l, 0, -b/2] //7
+									[-l_start, 0, -b_start/2], //4
+									[-l_start, -h_start, -b_start/2],
+									[-l_end, -h_end, -b_end/2],
+									[-l_end, 0, -b_end/2] //7
 									],
 						 faces=[
 									[0,1,2,3],
