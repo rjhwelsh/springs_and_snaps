@@ -339,22 +339,28 @@ module snap_rectangle(
 		// generate model
 		if (geometry==1) {
 				 // Box snap
-				 snap_bend(r=y/2+h, l=l) snap_neck();      // TEST
-				 snap_neck();
+				 snap_bend(r=y/2+h, l=l/2) snap_neck();      // TEST
+				 snap_neck(l_start=0, l_end=l/2);
+				 snap_neck_translate_segment(r=y/2+h, l=l/2, a=180)
+							snap_neck(l_start=l/2, l_end=l);
 				 snap_head();
 		}
 		else if (geometry==2) {
 				 // Half snap h->h/2
 				 h2=h/2;
-				 snap_bend(r=y/2+h, l=l) snap_neck(h2=h2); // TEST
-				 snap_neck(h2=h2);
+				 snap_bend(r=y/2+h, l=l/2) snap_neck(h2=h2); // TEST
+				 snap_neck(h2=h2, l_start=0, l_end=l/2);
+				 snap_neck_translate_segment(r=y/2+h, l=l/2, a=180)
+							snap_neck(h2=h2, l_start=l/2, l_end=l);
 				 snap_head(h=h2, a=atan(h2/l));
 		}
 		else if (geometry==3) {
 				 // Quarter snap b -> b/4
 				 b2 = b/4;
-				 snap_bend(r=y/2+h, l=l) snap_neck(b2=b2); // TEST
-				 snap_neck(b2=b2);
+				 snap_bend(r=y/2+h, l=l/2) snap_neck(b2=b2); // TEST
+				 snap_neck(b2=b2, l_start=0, l_end=l/2);
+				 snap_neck_translate_segment(r=y/2+h, l=l/2, a=180)
+							snap_neck(b2=b2, l_start=l/2, l_end=l);
 				 snap_head(h=h, b=b2);
 		}
 
@@ -391,8 +397,8 @@ echo(border2);
 // Test polyhedrons can be cut
 difference() {
 		 snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=1, t=1, title="Geometry 1");
-		 translate([-80,-6,0])
-					cube([100,10,2]);
+		 translate([-80,-15,0])
+					cube([100,20,2]);
 }
 
 // Test alternative geometries
