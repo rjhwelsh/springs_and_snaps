@@ -304,6 +304,7 @@ module snap_rectangle(
 		}
 
 		module snap_bend(r=bend_r, l=bend_l, a=bend_angle) {
+				 // Return radius bend at length, l.
 				 // r = radius of bend
 				 // l = length (at which bend begins)
 				 // a = angle of bend
@@ -317,6 +318,21 @@ module snap_rectangle(
 							rotate(a=90, v=[0,1,0])      //rotate around y-axis (stand-up on end)
 							translate([l,0,0])          //lower to set length
 							children();                  //snap_neck()
+		}
+
+		module snap_neck_translate_segment(r=bend_r, l=bend_l, a=bend_angle) {
+				 // Return length segment at from l_start to l_end
+				 // r = radius of bend
+				 // l = length (at which bend begins)
+				 // a = angle of bend
+				 // children() ->
+				 // apply to snap_neck(l_start, l_end);
+				 translate([-l,0,0])
+							translate([0,-r,0])
+							rotate(a=a, v=[0,0,1])
+							translate([0,r,0])
+							translate([l,0,0])
+							children();
 		}
 
 
