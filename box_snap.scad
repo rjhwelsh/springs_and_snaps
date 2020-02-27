@@ -303,6 +303,22 @@ module snap_rectangle(
 							polyhedron(points=points, faces=faces, convexity=10);
 		}
 
+		module snap_bend(r=bend_r, l=bend_l, a=bend_angle) {
+				 // r = radius of bend
+				 // l = length (at which bend begins)
+				 // a = angle of bend
+				 // children() ->
+				 // apply to snap_neck();
+				 translate([-l,0,0])
+							translate([0,-r,0])
+							rotate_extrude_around_x_axis(angle=a, convexity=10, $fn=$fn)
+							projection(cut=true)
+							translate([0,r,0])                //apply radius
+							rotate(a=90, v=[0,1,0])      //rotate around y-axis (stand-up on end)
+							translate([l,0,0])          //lower to set length
+							children();                  //snap_neck()
+		}
+
 
 		// generate model
 		if (geometry==1) {
