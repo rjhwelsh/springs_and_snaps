@@ -241,8 +241,6 @@ module snap_rectangle(
 									[11,10,9,8,7,6]
 
 									])
-							rotate(a=90,
-										 v=[1,0,0])
 							polyhedron(points=points,
 												 faces=faces,
 												 convexity=10);
@@ -289,8 +287,6 @@ module snap_rectangle(
 									[3,2,6,7],
 									[0,3,7,4]]
 							)
-							rotate(a=90,
-										 v=[1,0,0])
 							polyhedron(points=points, faces=faces, convexity=10);
 		}
 
@@ -347,8 +343,8 @@ echo(border2);
 // Test polyhedrons can be cut
 difference() {
 		 snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=1, t=1, title="Geometry 1");
-		 translate([-80,0,-6])
-					cube([100,2,10]);
+		 translate([-80,-6,0])
+					cube([100,10,2]);
 }
 
 // Test alternative geometries
