@@ -121,12 +121,16 @@ module snap_rectangle(
     // Main geometry
     y=false, // permissible deflection, mm
     h=false, // thickness @ root, mm
-    l=false, // length of arm, mm
+    l=false, // total length of arm, mm
     b=false, // width @ root, mm
     // Head geometry
     t=$fs,  // travel distance, mm
     i_A=45, // insert angle, deg
     r_A=90, // removal angle, deg
+		// Bend geometry
+		bend_r=false, // bend radius (to exterior of snap), mm
+		bend_l=false, // bend length, mm
+		bend_angle=180, // bend angle, deg
     // Material properties
     Sy=Sy, // yield strength, MPa
     E=E,   // elastic modulus, MPa
