@@ -343,8 +343,15 @@ module snap_rectangle(
 
 
 // Demo
-snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=1, t=1, title="Geometry 1");
 
+// Test polyhedrons can be cut
+difference() {
+		 snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=1, t=1, title="Geometry 1");
+		 translate([-80,0,-6])
+					cube([100,2,10]);
+}
+
+// Test alternative geometries
 translate([0,-20,0])
 snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=2, t=1, title="Geometry 2");
 
