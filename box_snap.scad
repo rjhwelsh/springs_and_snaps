@@ -107,6 +107,15 @@ function section_modulus_of_box_solve_for_h(b, Z)
     // Z = bh^2/6
     = pow(Z/b*6, 0.5);
 
+// Convenient modules
+module rotate_extrude_around_x_axis(angle=360, convexity=2, $fn=$fn) {
+		 rotate(a=-90, v=[0,0,1])
+					rotate_extrude(angle=angle, convexity=convexity, $fn=$fn)
+					rotate(a=90, v=[0,0,1])
+					children();
+}
+
+
 // Main
 module snap_rectangle(
     // Main geometry
