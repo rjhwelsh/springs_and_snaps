@@ -323,18 +323,21 @@ module snap_rectangle(
 		// generate model
 		if (geometry==1) {
 				 // Box snap
+				 snap_bend(r=y/2+h, l=l) snap_neck();      // TEST
 				 snap_neck();
 				 snap_head();
 		}
 		else if (geometry==2) {
 				 // Half snap h->h/2
 				 h2=h/2;
+				 snap_bend(r=y/2+h, l=l) snap_neck(h2=h2); // TEST
 				 snap_neck(h2=h2);
 				 snap_head(h=h2, a=atan(h2/l));
 		}
 		else if (geometry==3) {
 				 // Quarter snap b -> b/4
 				 b2 = b/4;
+				 snap_bend(r=y/2+h, l=l) snap_neck(b2=b2); // TEST
 				 snap_neck(b2=b2);
 				 snap_head(h=h, b=b2);
 		}
