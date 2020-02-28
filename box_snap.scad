@@ -132,7 +132,7 @@ module snap_rectangle(
     r_A=90, // removal angle, deg
 		// Bend geometry
 		bend_r=false, // bend radius (to exterior of snap), mm
-		bend_l=false, // bend length, mm
+		bend_l=false, // bend length, mm (does not include radius)
 		bend_angle=180, // bend angle, deg
     // Material properties
     Sy=Sy, // yield strength, MPa
@@ -194,34 +194,37 @@ module snap_rectangle(
     echo("Width @ root (mm) = ", b);
     echo(border2);
 
-    // deflection force
-    Z = section_modulus_of_box(
-        b,
-        h);
+		// Minimum bend radius (if undefined)
+		/* bend_r = (is_num(bend_r) ? bend_r : y/2+h); */
 
-    P = ( P ? P : deflection_force(e_max, l, E, Z));
-    echo("Deflection force (N) = ", P);
+		// deflection force
+		Z = section_modulus_of_box(
+				 b,
+				 h);
 
-    // mating angles
-    i_A = ( i_W ? mating_force_solve_for_A(P, mu, i_W) : i_A);
-    r_A = ( r_W ? mating_force_solve_for_A(P, mu, r_W) : r_A);
-    echo("Insertion angle (deg) = ", i_A);
-    echo("Removal angle (deg) = ", r_A);
+		P = ( P ? P : deflection_force(e_max, l, E, Z));
+		echo("Deflection force (N) = ", P);
 
-    // head insertion travel
-    i_t = y * tan(90 - i_A); // parallel travel on insertion
-    r_t = y * tan(90 - r_A); // parallel travel on removal
+		// mating angles
+		i_A = ( i_W ? mating_force_solve_for_A(P, mu, i_W) : i_A);
+		r_A = ( r_W ? mating_force_solve_for_A(P, mu, r_W) : r_A);
+		echo("Insertion angle (deg) = ", i_A);
+		echo("Removal angle (deg) = ", r_A);
 
-    // length of head, total
-    echo("Length of head (mm) = ", t + i_t + r_t);
-    echo("Total length (mm) = ", t + i_t + r_t + l);
+		// head insertion travel
+		i_t = y * tan(90 - i_A); // parallel travel on insertion
+		r_t = y * tan(90 - r_A); // parallel travel on removal
 
-    // mating force
-    i_W = (i_W ? i_W : mating_force(P, i_A, mu));
-    r_W = (r_W ? r_W : mating_force(P, r_A, mu));
-    echo("Insertion force (N) = ", i_W);
-    echo("Removal force (N) = ", r_W);
-    echo(border2);
+		// length of head, total
+		echo("Length of head (mm) = ", t + i_t + r_t);
+		echo("Total length (mm) = ", t + i_t + r_t + l);
+
+		// mating force
+		i_W = (i_W ? i_W : mating_force(P, i_A, mu));
+		r_W = (r_W ? r_W : mating_force(P, r_A, mu));
+		echo("Insertion force (N) = ", i_W);
+		echo("Removal force (N) = ", r_W);
+		echo(border2);
 
 
 		module snap_head(h=h, a=0, b=b) {
@@ -323,7 +326,7 @@ module snap_rectangle(
 							children();                  //snap_neck()
 		}
 
-		module snap_neck_translate_segment(r=bend_r, l=bend_l, a=bend_angle, n=0, h=h, dh=0) {
+		module snap_neck_translate_segment(r=bend_r, l=bend_l, a=bend_angle, n=0, h=h, dh=0, dr=0) {
 				 // Return length segment at from l_start to l_end
 				 // r = radius of bend
 				 // l = length (at which bend begins)
@@ -335,6 +338,9 @@ module snap_rectangle(
 
 				 // children() ->
 				 // apply to snap_neck(l_start, l_end);
+
+				 /* r0 = r; */
+				 /* r  = r0 + n*dr; */
 
 				 // Condition for reversing bend
 				 function reverse_condition(a, n) =
@@ -371,7 +377,7 @@ module snap_rectangle(
 												-r*cos(a_n),
 												0] : undef ));
 
-				 function relative_translation_for_bend(r, a, n=0, h=h, dh=dh) =
+				 function relative_translation_for_bend(r, a, n=0, h=h, dh=dh, dr=dr) =
 							(n==0 ? [0, 0, 0] :
 							 let(a_n = bend_angle_restrict(a, n-1),
 									 reverse = reverse_condition(a, n-1),
@@ -379,32 +385,33 @@ module snap_rectangle(
 
 									 // Adjust h_n according to thickness at each step
 									 h_n  = h + n*dh,
-									 dx_h = reverse_flip ? -h_n*cos(a) : 0,
-									 dy_h = reverse_flip ? h_n*sin(a) : 0,
+									 dx_h = reverse_flip ? -h_n*sin(a) : 0,
+									 dy_h = reverse_flip ? h_n*cos(a) : 0,
 
-									 prev_n=n-1)
+									 prev_n=n-1,
+
+									 hyp = 2*(r-dr)*sin(a/2)  // Hypotenuse for chord in bending arc
+										)
 
 							 (n>=1 ?
 
 								(reverse ?
 								 // Reverse orientation
 								 let(a_nr = abs(a_n), // Reverse angle (start from 0)
-										 hyp = 2*r*sin(a/2),  // Hypotenuse for chord in bending arc
 										 dx  = -hyp*cos(a/2) - dx_h,  // dx is mirrored (negative)
 										 dy  = hyp*sin(a/2) + dy_h,
 										 dx_rot = dx*cos(-a_nr) - dy*sin(-a_nr),  // Rotate opposite direction (clockwise)
 										 dy_rot = dx*sin(-a_nr) + dy*cos(-a_nr))
 								 sum([ [-dx_rot, -dy_rot, 0] , // dx in reverse direction
-											 relative_translation_for_bend(r=r, a=a, n=prev_n)]) :
+											 relative_translation_for_bend(r=r-dr, a=a, n=prev_n, dr=dr)]) :
 
 								 // Regular orientation
-								 let(hyp = 2*r*sin(a/2),  // Hypotenuse for chord in bending arc
-										 dx  = hyp*cos(a/2) + dx_h,  // Relative change in position (relative coords)
+								 let(dx  = hyp*cos(a/2) + dx_h,  // Relative change in position (relative coords)
 										 dy  = hyp*sin(a/2) + dy_h,
 										 dx_rot = dx*cos(a_n) - dy*sin(a_n),  // Rotate change in position (relative, aligned rotation)
 										 dy_rot = dx*sin(a_n) + dy*cos(a_n))
 								 sum([ [-dx_rot, -dy_rot, 0] ,
-											 relative_translation_for_bend(r=r, a=a, n=prev_n)])
+											 relative_translation_for_bend(r=r-dr, a=a, n=prev_n, dr=dr)])
 										 )
 								: undef ));
 
@@ -421,76 +428,66 @@ module snap_rectangle(
 									 translate(tl)
 												translate(trc)
 												translate(trb)
-												// translate([-l,0,0])
-												//translate([0,-r,0])
 												if (reverse) {
 														 mirror([1,0,0])                 // Mirror snap_neck() and snap_bend()
 																	rotate(a=-a_n, v=[0,0,1])  // Rotate in opposite direction
 																	translate([0,r,0])
-																	translate([l,0,n*5])
+																	translate([l,0,0])
 																	children();
 												}
 												else {
 														 rotate(a=a_n, v=[0,0,1])
 																	translate([0,r,0])
-																	translate([l,0,n*5])
+																	translate([l,0,0])
 																	children();
 												}
-//echo("TR=", tr);
-									 echo("TL=", tl, a, a_n);
-									 echo("TRB=", trb, a, a_n);
 							}
 				 }
+		}
+
+		module snap_main(h2=h, b2=b) {
+				 if (is_num(bend_l)) {
+							/* echo("bend_l is a number!"); */
+							let(
+									 segments=ceil(l/bend_l),
+									 //colors=["red", "green", "blue", "purple", "orange"],
+									 dh = h - h2,
+									 dh_over_n = l/segments*tan(atan(dh/l))
+									 )
+									 for (n = [0:segments-1]){
+												let(
+														 bend_r0 = bend_r ? bend_r : y/2 + h2 + dh_over_n,
+														 bend_dr = dh_over_n,
+														 bend_r = bend_r ? bend_r : y/2 + h2 + (n+1)*dh_over_n
+														 )
+														 //color(colors[n%len(colors)])
+														 snap_neck_translate_segment(r=bend_r, l=n*l/segments, a=bend_angle, n=n,
+																												 h=h2, dh=dh_over_n, dr=bend_dr) {
+																	snap_neck(l_start=n*l/segments, l_end=(n+1)*l/segments, h2=h2, b2=b2);
+																	snap_bend(r=bend_r, l=(n+1)*l/segments, a=bend_angle) snap_neck(h2=h2, b2=b2);
+														 }
+									 }}
+				 else {
+							snap_neck(l_start=0, l_end=l, h2=h2, b2=b2);
+				 }
+				 snap_head(h=h2, a=atan((h-h2)/l), b=b2);
 		}
 
 
 		// generate model
 		if (geometry==1) {
 				 // Box snap
-				 let (test_angle=45, segments=10, colors=["red", "green", "blue", "purple", "orange"], test_radius=20) {
-							// snap_bend(r=y/2+h, l=l/segments, a=test_angle) snap_neck();      // TEST: 3 step
-							// snap_neck(l_start=0, l_end=l/segments);
-							for (n = [0:segments-1]){
-									 echo(colors[n%len(colors)]);
-									 //snap_bend(r=y/2+h, l=(n+1)*l/segments, a=test_angle) snap_neck();
-									 color(colors[n%len(colors)])
-												snap_neck_translate_segment(r=test_radius, l=n*l/segments, a=test_angle, n=n){
-												snap_neck(l_start=n*l/segments, l_end=(n+1)*l/segments);
-												snap_bend(r=test_radius, l=(n+1)*l/segments, a=test_angle) snap_neck();
-									 }
-							}
-							snap_head();
-				 }
+				 snap_main();
 		}
 		else if (geometry==2) {
 				 // Half snap h->h/2
 				 h2=h/2;
-				 /* snap_bend(r=y/2+h, l=l/2) snap_neck(h2=h2); // TEST */
-				 /* snap_neck(h2=h2, l_start=0, l_end=l/2); */
-				 /* snap_neck_translate_segment(r=y/2+h, l=l/2, a=180) */
-				 /* 			snap_neck(h2=h2, l_start=l/2, l_end=l); */
-				 // TEST
-				 let (test_angle=45, segments=10, colors=["red", "green", "blue", "purple", "orange"], test_radius=20) {
-							for (n = [0:segments-1]){
-									 echo(colors[n%len(colors)]);
-									 color(colors[n%len(colors)])
-												snap_neck_translate_segment(r=test_radius, l=n*l/segments, a=test_angle, n=n,
-																										h=h2, dh=l/segments*tan(atan(h2/l))) {
-												snap_neck(l_start=n*l/segments, l_end=(n+1)*l/segments, h2=h2);
-												snap_bend(r=test_radius, l=(n+1)*l/segments, a=test_angle) snap_neck(h2=h2);
-									 }
-							}
-							snap_head(h=h2, a=atan(h2/l));
-				 }
+				 snap_main(h2=h2);
 		}
 		else if (geometry==3) {
 				 // Quarter snap b -> b/4
 				 b2 = b/4;
-				 snap_bend(r=y/2+h, l=l/2) snap_neck(b2=b2); // TEST
-				 snap_neck(b2=b2, l_start=0, l_end=l/2);
-				 snap_neck_translate_segment(r=y/2+h, l=l/2, a=180)
-							snap_neck(b2=b2, l_start=l/2, l_end=l);
-				 snap_head(h=h, b=b2);
+				 snap_main(b2=b2);
 		}
 
 
@@ -522,17 +519,10 @@ echo(border2);
 
 
 // Demo
+snap_rectangle(y=2, b=10, h=5, P=1, mu=0.5, geometry=1, t=1, title="Geometry 1", bend_l=40, bend_angle=180);
 
-// Test polyhedrons can be cut
-difference() {
-		 snap_rectangle(y=2, b=10, h=5, P=1, mu=0.5, geometry=2, t=1, title="Geometry 1");
-		 translate([-80,-15,0])
-					cube([100,20,2]);
-}
+translate([0,-40,0])
+snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=2, t=1, title="Geometry 2", bend_l=50);
 
-// Test alternative geometries
-// translate([0,-20,0])
-// snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=2, t=1, title="Geometry 2");
-//
-// translate([0,-40,0])
-// snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=3, t=1, title="Geometry 3");
+translate([0,-80,0])
+snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=3, t=1, title="Geometry 3", bend_l=50);
