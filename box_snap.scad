@@ -454,7 +454,7 @@ module snap_rectangle(
 									 for (n = [0:segments-1]){
 												let(
 														 bend_r0 = bend_r ? bend_r : y/segments + h2 + dh_over_n,
-														 bend_dr = dh_over_n,
+														 bend_dr = bend_r ? 0 : dh_over_n,
 														 bend_r = bend_r ? bend_r : y/segments + h2 + (n+1)*dh_over_n
 														 )
 														 //color(colors[n%len(colors)])
