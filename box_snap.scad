@@ -194,9 +194,6 @@ module snap_rectangle(
     echo("Width @ root (mm) = ", b);
     echo(border2);
 
-		// Minimum bend radius (if undefined)
-		/* bend_r = (is_num(bend_r) ? bend_r : y/2+h); */
-
 		// deflection force
 		Z = section_modulus_of_box(
 				 b,
@@ -456,9 +453,9 @@ module snap_rectangle(
 									 )
 									 for (n = [0:segments-1]){
 												let(
-														 bend_r0 = bend_r ? bend_r : y/2 + h2 + dh_over_n,
+														 bend_r0 = bend_r ? bend_r : y/segments + h2 + dh_over_n,
 														 bend_dr = dh_over_n,
-														 bend_r = bend_r ? bend_r : y/2 + h2 + (n+1)*dh_over_n
+														 bend_r = bend_r ? bend_r : y/segments + h2 + (n+1)*dh_over_n
 														 )
 														 //color(colors[n%len(colors)])
 														 snap_neck_translate_segment(r=bend_r, l=n*l/segments, a=bend_angle, n=n,
