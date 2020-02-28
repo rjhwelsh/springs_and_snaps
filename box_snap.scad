@@ -1,5 +1,8 @@
 // Box shaped snap connector
 
+use<../extended_functions/extended_functions.scad>
+// Provides sum(vList) for general vector summation
+
 // Tolerance
 $fs = 0.2;
 
@@ -303,16 +306,17 @@ module snap_rectangle(
 							polyhedron(points=points, faces=faces, convexity=10);
 		}
 
-		module snap_bend(r=bend_r, l=bend_l, a=bend_angle) {
+		module snap_bend(r=bend_r, l=bend_l, a=bend_angle, n=1) {
 				 // Return radius bend at length, l.
 				 // r = radius of bend
 				 // l = length (at which bend begins)
-				 // a = angle of bend
+				 // a = angle of bend (180deg MAX)
+				 // n = bend #
 				 // children() ->
 				 // apply to snap_neck();
 				 translate([-l,0,0])
 							translate([0,-r,0])
-							rotate_extrude_around_x_axis(angle=a, convexity=10, $fn=$fn)
+							rotate_extrude_around_x_axis(angle=a, convexity=10, $fn=$fn) /* TODO: Rotate snap_bend according to 'n' */
 							projection(cut=true)
 							translate([0,r,0])                //apply radius
 							rotate(a=90, v=[0,1,0])      //rotate around y-axis (stand-up on end)
@@ -320,30 +324,76 @@ module snap_rectangle(
 							children();                  //snap_neck()
 		}
 
-		module snap_neck_translate_segment(r=bend_r, l=bend_l, a=bend_angle) {
+		module snap_neck_translate_segment(r=bend_r, l=bend_l, a=bend_angle, n=0) {
 				 // Return length segment at from l_start to l_end
 				 // r = radius of bend
 				 // l = length (at which bend begins)
 				 // a = angle of bend
+				 // n = bend #
 				 // children() ->
 				 // apply to snap_neck(l_start, l_end);
-				 translate([-l,0,0])
-							translate([0,-r,0])
-							rotate(a=a, v=[0,0,1])
-							translate([0,r,0])
-							translate([l,0,0])
-							children();
+
+				 function bend_angle_restrict(a, n) =
+							let(b =  (a*n)%360) b <= 180 ? b : 360 - b; // Maximum angle is 360, 0->180, then 360->180
+
+         // Recursive translation functions
+				 function relative_translation_for_length(l, a, n=0) =
+							(n==0 ? [0, 0, 0] :
+							 let(l_rel=l/n,
+									 l_prev=l_rel*(n-1),
+									 a_n = bend_angle_restrict(a, n-1))
+							 (n>=1 ? sum([ [-l_rel*cos(a_n),
+															-l_rel*sin(a_n),
+															0] ,
+														 relative_translation_for_length(l=l_prev, a=a, n=n-1)])
+								: undef ));
+
+				 function relative_translation_for_radius(r, a, n=0) =
+							(n==0 ? [0, 0, 0] :
+							 let(a_n = bend_angle_restrict(a, n))
+							 (n>=1 ? [r*sin(a_n),
+												-r*cos(a_n),
+												0] : undef ));
+
+				 if (n==0) children(); // No bend
+				 else {
+							let(
+									 a_n = bend_angle_restrict(a, n),
+									 tl = relative_translation_for_length(l=l, a=a, n=n),
+									 tr = relative_translation_for_radius(r=r, a=a, n=n)
+									 ) {
+									 translate(tl)
+												//translate(tr)
+												//translate([-l,0,0])
+												translate([0,-r,0])
+
+												rotate(a=a_n, v=[0,0,1])
+												translate([0,r,0])
+												translate([l,0,0])
+												children();
+									 //echo("TR=", tr);
+									 //echo("TL=", tl, a, a_n);
+							}
+				 }
 		}
 
 
 		// generate model
 		if (geometry==1) {
 				 // Box snap
-				 snap_bend(r=y/2+h, l=l/2) snap_neck();      // TEST
-				 snap_neck(l_start=0, l_end=l/2);
-				 snap_neck_translate_segment(r=y/2+h, l=l/2, a=180)
-							snap_neck(l_start=l/2, l_end=l);
-				 snap_head();
+				 let (test_angle=30, segments=5, colors=["red", "blue", "green"], test_radius=20) {
+							// snap_bend(r=y/2+h, l=l/segments, a=test_angle) snap_neck();      // TEST: 3 step
+							// snap_neck(l_start=0, l_end=l/segments);
+							for (n = [0:segments-1]){
+									 //snap_bend(r=y/2+h, l=(n+1)*l/segments, a=test_angle) snap_neck();
+									 color(colors[n%3])
+												snap_neck_translate_segment(r=test_radius, l=n*l/segments, a=test_angle, n=n){
+												snap_neck(l_start=n*l/segments, l_end=(n+1)*l/segments);
+												snap_bend(r=test_radius, l=(n+1)*l/segments, a=test_angle) snap_neck();
+									 }
+							}
+							snap_head();
+				 }
 		}
 		else if (geometry==2) {
 				 // Half snap h->h/2
@@ -402,8 +452,8 @@ difference() {
 }
 
 // Test alternative geometries
-translate([0,-20,0])
-snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=2, t=1, title="Geometry 2");
-
-translate([0,-40,0])
-snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=3, t=1, title="Geometry 3");
+// translate([0,-20,0])
+// snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=2, t=1, title="Geometry 2");
+//
+// translate([0,-40,0])
+// snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=3, t=1, title="Geometry 3");
