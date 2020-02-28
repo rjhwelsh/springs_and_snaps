@@ -449,21 +449,27 @@ module snap_rectangle(
 									 segments=ceil(l/bend_l),
 									 //colors=["red", "green", "blue", "purple", "orange"],
 									 dh = h - h2,
-									 dh_over_n = l/segments*tan(atan(dh/l))
-									 )
-									 for (n = [0:segments-1]){
-												let(
-														 bend_r0 = bend_r ? bend_r : y/segments + h2 + dh_over_n,
-														 bend_dr = bend_r ? 0 : dh_over_n,
-														 bend_r = bend_r ? bend_r : y/segments + h2 + (n+1)*dh_over_n
-														 )
-														 //color(colors[n%len(colors)])
-														 snap_neck_translate_segment(r=bend_r, l=n*l/segments, a=bend_angle, n=n,
-																												 h=h2, dh=dh_over_n, dr=bend_dr) {
+									 dh_over_n = l/segments*tan(atan(dh/l)),
+									 bend_r = [ for (n = [0:segments-1]) bend_r ? bend_r : y/segments + h2 + (n+1)*dh_over_n]
+									 ) {
+												for (n = [0:segments-1]){
+														 let(
+																	bend_r0 = bend_r ? bend_r : y/segments + h2 + dh_over_n,
+																	bend_dr = bend_r ? 0 : dh_over_n,
+																	bend_r = bend_r[n]
+																	)
+																	//color(colors[n%len(colors)])
+																	snap_neck_translate_segment(r=bend_r, l=n*l/segments, a=bend_angle, n=n,
+																															h=h2, dh=dh_over_n, dr=bend_dr) {
 																	snap_neck(l_start=n*l/segments, l_end=(n+1)*l/segments, h2=h2, b2=b2);
 																	snap_bend(r=bend_r, l=(n+1)*l/segments, a=bend_angle) snap_neck(h2=h2, b2=b2);
 														 }
-									 }}
+												}
+												// Bend information
+												echo(border2);
+												echo("Bend radius sequence, mm", bend_r);
+												echo(border2);
+							}}
 				 else {
 							snap_neck(l_start=0, l_end=l, h2=h2, b2=b2);
 				 }
