@@ -377,12 +377,15 @@ module snap_rectangle(
 									 reverse = reverse_condition(a, n-1),
 									 reverse_flip = reverse_condition(a, n) != reverse,
 
-									 /* TODO: Use dh for variable root thickness geometry 2 */
-									 dx_h = reverse_flip ? -h*cos(a) : 0,
-									 dy_h = reverse_flip ? h*sin(a) : 0,
+									 // Adjust h_n according to thickness at each step
+									 h_n  = h + n*dh,
+									 dx_h = reverse_flip ? -h_n*cos(a) : 0,
+									 dy_h = reverse_flip ? h_n*sin(a) : 0,
 
 									 prev_n=n-1)
+
 							 (n>=1 ?
+
 								(reverse ?
 								 // Reverse orientation
 								 let(a_nr = abs(a_n), // Reverse angle (start from 0)
@@ -471,7 +474,8 @@ module snap_rectangle(
 							for (n = [0:segments-1]){
 									 echo(colors[n%len(colors)]);
 									 color(colors[n%len(colors)])
-												snap_neck_translate_segment(r=test_radius, l=n*l/segments, a=test_angle, n=n){
+												snap_neck_translate_segment(r=test_radius, l=n*l/segments, a=test_angle, n=n,
+																										h=h2, dh=l/segments*tan(atan(h2/l))) {
 												snap_neck(l_start=n*l/segments, l_end=(n+1)*l/segments, h2=h2);
 												snap_bend(r=test_radius, l=(n+1)*l/segments, a=test_angle) snap_neck(h2=h2);
 									 }
@@ -521,7 +525,7 @@ echo(border2);
 
 // Test polyhedrons can be cut
 difference() {
-		 snap_rectangle(y=2, b=10, h=5, P=1, mu=0.5, geometry=1, t=1, title="Geometry 1");
+		 snap_rectangle(y=2, b=10, h=5, P=1, mu=0.5, geometry=2, t=1, title="Geometry 1");
 		 translate([-80,-15,0])
 					cube([100,20,2]);
 }
@@ -532,5 +536,3 @@ difference() {
 //
 // translate([0,-40,0])
 // snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=3, t=1, title="Geometry 3");
-
-cylinder(r=2*20*cos(45/2)/2);
