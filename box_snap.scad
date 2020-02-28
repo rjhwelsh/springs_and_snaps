@@ -306,12 +306,11 @@ module snap_rectangle(
 							polyhedron(points=points, faces=faces, convexity=10);
 		}
 
-		module snap_bend(r=bend_r, l=bend_l, a=bend_angle, n=1) {
+		module snap_bend(r=bend_r, l=bend_l, a=bend_angle) {
 				 // Return radius bend at length, l.
 				 // r = radius of bend
 				 // l = length (at which bend begins)
 				 // a = angle of bend (180deg MAX)
-				 // n = bend #
 				 // children() ->
 				 // apply to snap_neck();
 				 translate([-l,0,0])
@@ -324,55 +323,119 @@ module snap_rectangle(
 							children();                  //snap_neck()
 		}
 
-		module snap_neck_translate_segment(r=bend_r, l=bend_l, a=bend_angle, n=0) {
+		module snap_neck_translate_segment(r=bend_r, l=bend_l, a=bend_angle, n=0, h=h, dh=0) {
 				 // Return length segment at from l_start to l_end
 				 // r = radius of bend
 				 // l = length (at which bend begins)
 				 // a = angle of bend
 				 // n = bend #
+
+				 // h = root thickness at snap_head()
+				 // dh = root thickness increase (per section 'n')
+
 				 // children() ->
 				 // apply to snap_neck(l_start, l_end);
 
-				 function bend_angle_restrict(a, n) =
-							let(b =  (a*n)%360) b <= 180 ? b : 360 - b; // Maximum angle is 360, 0->180, then 360->180
+				 // Condition for reversing bend
+				 function reverse_condition(a, n) =
+							let(b =  (a*n)%360) b >= 180 ? true : false;
 
-         // Recursive translation functions
+				 // Angle restriction
+				 function bend_angle_restrict(a, n) =
+							let(b =  (a*n)%360) b < 180 ? b : 180 - b; // Maximum angle is 360, 0->180, 0->-180
+
+				 // Recursive translation functions
 				 function relative_translation_for_length(l, a, n=0) =
 							(n==0 ? [0, 0, 0] :
 							 let(l_rel=l/n,
 									 l_prev=l_rel*(n-1),
-									 a_n = bend_angle_restrict(a, n-1))
-							 (n>=1 ? sum([ [-l_rel*cos(a_n),
-															-l_rel*sin(a_n),
-															0] ,
-														 relative_translation_for_length(l=l_prev, a=a, n=n-1)])
+									 a_n = bend_angle_restrict(a, n-1),
+									 reverse = reverse_condition(a, n-1))
+							 (n>=1 ?
+								(reverse ?
+								 sum([ [l_rel*cos(a_n),
+												l_rel*sin(a_n),
+												0] ,
+											 relative_translation_for_length(l=l_prev, a=a, n=n-1)]) :
+								 sum([ [-l_rel*cos(a_n),
+												-l_rel*sin(a_n),
+												0] ,
+											 relative_translation_for_length(l=l_prev, a=a, n=n-1)])
+										 )
 								: undef ));
 
-				 function relative_translation_for_radius(r, a, n=0) =
+				 function relative_translation_for_radius_to_center(r, a, n=0) =
 							(n==0 ? [0, 0, 0] :
 							 let(a_n = bend_angle_restrict(a, n))
 							 (n>=1 ? [r*sin(a_n),
 												-r*cos(a_n),
 												0] : undef ));
 
+				 function relative_translation_for_bend(r, a, n=0, h=h, dh=dh) =
+							(n==0 ? [0, 0, 0] :
+							 let(a_n = bend_angle_restrict(a, n-1),
+									 reverse = reverse_condition(a, n-1),
+									 next_reverse = reverse_condition(a, n),
+
+									 /* TODO: Use dh for variable root thickness geometry 2 */
+									 dx_h = next_reverse ? -h*cos(a) : 0,
+									 dy_h = next_reverse ? h*sin(a) : 0,
+
+									 prev_n=n-1)
+							 (n>=1 ?
+								(reverse ?
+								 // Reverse orientation
+								 let(a_n_reverse = 180 - a_n, // Reverse angle
+										 hyp = 2*r*sin(a/2),  // Hypotenuse for chord in bending arc
+										 dx  = hyp*cos(a/2),
+										 dy  = hyp*sin(a/2),
+										 dx_rot = dx*cos(a_n_reverse) - dy*sin(a_n_reverse),  // Rotate opposite direction
+										 dy_rot = dx*sin(a_n_reverse) + dy*cos(a_n_reverse))
+								 sum([ [-dx_rot, -dy_rot, 0] , // dx in reverse direction
+											 relative_translation_for_bend(r=r, a=a, n=prev_n)]) :
+
+								 // Regular orientation
+								 let(hyp = 2*r*sin(a/2),  // Hypotenuse for chord in bending arc
+										 dx  = hyp*cos(a/2) + dx_h,  // Relative change in position (relative coords)
+										 dy  = hyp*sin(a/2) + dy_h,
+										 dx_rot = dx*cos(a_n) - dy*sin(a_n),  // Rotate change in position (relative, aligned rotation)
+										 dy_rot = dx*sin(a_n) + dy*cos(a_n))
+								 sum([ [-dx_rot, -dy_rot, 0] ,
+											 relative_translation_for_bend(r=r, a=a, n=prev_n)])
+										 )
+								: undef ));
+
+
 				 if (n==0) children(); // No bend
 				 else {
 							let(
 									 a_n = bend_angle_restrict(a, n),
+									 reverse = reverse_condition(a, n),
 									 tl = relative_translation_for_length(l=l, a=a, n=n),
-									 tr = relative_translation_for_radius(r=r, a=a, n=n)
+									 trc = relative_translation_for_radius_to_center(r=r, a=a, n=n),
+									 trb = relative_translation_for_bend(r=r, a=a, n=n)
 									 ) {
 									 translate(tl)
-												//translate(tr)
-												//translate([-l,0,0])
-												translate([0,-r,0])
-
-												rotate(a=a_n, v=[0,0,1])
-												translate([0,r,0])
-												translate([l,0,0])
-												children();
-									 //echo("TR=", tr);
-									 //echo("TL=", tl, a, a_n);
+												translate(trc)
+												translate(trb)
+												// translate([-l,0,0])
+												//translate([0,-r,0])
+												if (reverse) {
+														 mirror([1,0,0])                 // Mirror snap_neck() and snap_bend()
+																	rotate(a=-a_n, v=[0,0,1])  // Rotate in opposite direction
+																	translate([0,r,0])
+																	translate([l,0,n*5])
+																	children();
+												}
+												else {
+														 rotate(a=a_n, v=[0,0,1])
+																	translate([0,r,0])
+																	translate([l,0,n*5])
+																	children();
+												}
+//echo("TR=", tr);
+									 /* echo("TL=", tl, a, a_n); */
+									 echo("TRB=", trb, a, a_n);
 							}
 				 }
 		}
@@ -381,12 +444,12 @@ module snap_rectangle(
 		// generate model
 		if (geometry==1) {
 				 // Box snap
-				 let (test_angle=30, segments=5, colors=["red", "blue", "green"], test_radius=20) {
+				 let (test_angle=45, segments=10, colors=["red", "green", "blue", "purple", "orange"], test_radius=20) {
 							// snap_bend(r=y/2+h, l=l/segments, a=test_angle) snap_neck();      // TEST: 3 step
 							// snap_neck(l_start=0, l_end=l/segments);
 							for (n = [0:segments-1]){
 									 //snap_bend(r=y/2+h, l=(n+1)*l/segments, a=test_angle) snap_neck();
-									 color(colors[n%3])
+									 color(colors[n%len(colors)])
 												snap_neck_translate_segment(r=test_radius, l=n*l/segments, a=test_angle, n=n){
 												snap_neck(l_start=n*l/segments, l_end=(n+1)*l/segments);
 												snap_bend(r=test_radius, l=(n+1)*l/segments, a=test_angle) snap_neck();
@@ -398,11 +461,21 @@ module snap_rectangle(
 		else if (geometry==2) {
 				 // Half snap h->h/2
 				 h2=h/2;
-				 snap_bend(r=y/2+h, l=l/2) snap_neck(h2=h2); // TEST
-				 snap_neck(h2=h2, l_start=0, l_end=l/2);
-				 snap_neck_translate_segment(r=y/2+h, l=l/2, a=180)
-							snap_neck(h2=h2, l_start=l/2, l_end=l);
-				 snap_head(h=h2, a=atan(h2/l));
+				 /* snap_bend(r=y/2+h, l=l/2) snap_neck(h2=h2); // TEST */
+				 /* snap_neck(h2=h2, l_start=0, l_end=l/2); */
+				 /* snap_neck_translate_segment(r=y/2+h, l=l/2, a=180) */
+				 /* 			snap_neck(h2=h2, l_start=l/2, l_end=l); */
+				 // TEST
+				 let (test_angle=45, segments=10, colors=["red", "green", "blue", "purple", "orange"], test_radius=20) {
+							for (n = [0:segments-1]){
+									 color(colors[n%len(colors)])
+												snap_neck_translate_segment(r=test_radius, l=n*l/segments, a=test_angle, n=n){
+												snap_neck(l_start=n*l/segments, l_end=(n+1)*l/segments, h2=h2);
+												snap_bend(r=test_radius, l=(n+1)*l/segments, a=test_angle) snap_neck(h2=h2);
+									 }
+							}
+							snap_head(h=h2, a=atan(h2/l));
+				 }
 		}
 		else if (geometry==3) {
 				 // Quarter snap b -> b/4
@@ -446,7 +519,7 @@ echo(border2);
 
 // Test polyhedrons can be cut
 difference() {
-		 snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=1, t=1, title="Geometry 1");
+		 snap_rectangle(y=2, b=10, h=5, P=1, mu=0.5, geometry=1, t=1, title="Geometry 1");
 		 translate([-80,-15,0])
 					cube([100,20,2]);
 }
@@ -457,3 +530,5 @@ difference() {
 //
 // translate([0,-40,0])
 // snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=3, t=1, title="Geometry 3");
+
+cylinder(r=2*20*cos(45/2)/2);
