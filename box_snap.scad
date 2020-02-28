@@ -375,22 +375,22 @@ module snap_rectangle(
 							(n==0 ? [0, 0, 0] :
 							 let(a_n = bend_angle_restrict(a, n-1),
 									 reverse = reverse_condition(a, n-1),
-									 next_reverse = reverse_condition(a, n),
+									 reverse_flip = reverse_condition(a, n) != reverse,
 
 									 /* TODO: Use dh for variable root thickness geometry 2 */
-									 dx_h = next_reverse ? -h*cos(a) : 0,
-									 dy_h = next_reverse ? h*sin(a) : 0,
+									 dx_h = reverse_flip ? -h*cos(a) : 0,
+									 dy_h = reverse_flip ? h*sin(a) : 0,
 
 									 prev_n=n-1)
 							 (n>=1 ?
 								(reverse ?
 								 // Reverse orientation
-								 let(a_n_reverse = 180 - a_n, // Reverse angle
+								 let(a_nr = abs(a_n), // Reverse angle (start from 0)
 										 hyp = 2*r*sin(a/2),  // Hypotenuse for chord in bending arc
-										 dx  = hyp*cos(a/2),
-										 dy  = hyp*sin(a/2),
-										 dx_rot = dx*cos(a_n_reverse) - dy*sin(a_n_reverse),  // Rotate opposite direction
-										 dy_rot = dx*sin(a_n_reverse) + dy*cos(a_n_reverse))
+										 dx  = -hyp*cos(a/2) - dx_h,  // dx is mirrored (negative)
+										 dy  = hyp*sin(a/2) + dy_h,
+										 dx_rot = dx*cos(-a_nr) - dy*sin(-a_nr),  // Rotate opposite direction (clockwise)
+										 dy_rot = dx*sin(-a_nr) + dy*cos(-a_nr))
 								 sum([ [-dx_rot, -dy_rot, 0] , // dx in reverse direction
 											 relative_translation_for_bend(r=r, a=a, n=prev_n)]) :
 
@@ -434,7 +434,7 @@ module snap_rectangle(
 																	children();
 												}
 //echo("TR=", tr);
-									 /* echo("TL=", tl, a, a_n); */
+									 echo("TL=", tl, a, a_n);
 									 echo("TRB=", trb, a, a_n);
 							}
 				 }
@@ -448,6 +448,7 @@ module snap_rectangle(
 							// snap_bend(r=y/2+h, l=l/segments, a=test_angle) snap_neck();      // TEST: 3 step
 							// snap_neck(l_start=0, l_end=l/segments);
 							for (n = [0:segments-1]){
+									 echo(colors[n%len(colors)]);
 									 //snap_bend(r=y/2+h, l=(n+1)*l/segments, a=test_angle) snap_neck();
 									 color(colors[n%len(colors)])
 												snap_neck_translate_segment(r=test_radius, l=n*l/segments, a=test_angle, n=n){
@@ -468,6 +469,7 @@ module snap_rectangle(
 				 // TEST
 				 let (test_angle=45, segments=10, colors=["red", "green", "blue", "purple", "orange"], test_radius=20) {
 							for (n = [0:segments-1]){
+									 echo(colors[n%len(colors)]);
 									 color(colors[n%len(colors)])
 												snap_neck_translate_segment(r=test_radius, l=n*l/segments, a=test_angle, n=n){
 												snap_neck(l_start=n*l/segments, l_end=(n+1)*l/segments, h2=h2);
