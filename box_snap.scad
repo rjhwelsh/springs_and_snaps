@@ -551,6 +551,7 @@ module snap_rectangle(
 										echo(border2);
 										echo("Bend radius sequence, mm =", bend_r_array);
 										echo("Bend radius, TOTAL=", sum(bend_r_array));
+										echo("Bend radius, AVG  =", sum(bend_r_array)/len(bend_r_array));
 										echo(border2);
 							 }}
 					else {
