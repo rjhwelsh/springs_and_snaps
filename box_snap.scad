@@ -506,11 +506,10 @@ module snap_rectangle(
 							else { children(); }
 				 }
 
-				 if (is_num(bend_l)) {
+				 if (is_bool(bend_l) == false) {
 							/* echo("bend_l is a number!"); */
 							let(
 									 segments=count_bends(bend_l, l),
-									 bend_l=l/segments,
 									 colors=["red", "green", "blue", "purple", "orange"],
 									 dh = h - h2,
 									 dh_over_n = l/segments*tan(atan(dh/l)),
@@ -521,13 +520,20 @@ module snap_rectangle(
 														 let(
 																	bend_r0 = bend_r ? bend_r : y/segments + h2 + dh_over_n,
 																	bend_dr = bend_r ? 0 : dh_over_n,
-																	bend_ra = bend_r_array[n]  // adjusted bend radius
+																	bend_ra = bend_r_array[n],  // adjusted bend radius
+
+																	// Length segments
+																	l_start = bend_length(n=n, bend_l=bend_l),
+																	l_end = bend_length(n=n+1, bend_l=bend_l)
 																	)
 																	color(colors[n%len(colors)])
 																	snap_neck_translate_segment(r=bend_ra, l=bend_l, a=bend_angle, n=n,
 																															h=h2, dh=dh_over_n, dr=bend_dr) {
-																	snap_neck(l_start=n*bend_l, l_end=(n+1)*bend_l, h2=h2, b2=b2);
-																	snap_bend(r=bend_ra, l=(n+1)*l/segments, a=bend_angle) snap_neck(h2=h2, b2=b2);
+																	snap_neck(l_start=l_start, l_end=l_end, h2=h2, b2=b2);
+																	snap_bend(r=bend_ra, l=l_end, a=bend_angle) snap_neck(h2=h2, b2=b2);
+
+																	echo("l_start=", l_start);
+																	echo("l_end=", l_end);
 														 }
 												}
 									 // Bend information
