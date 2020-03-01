@@ -374,15 +374,16 @@ module snap_rectangle(
 						undef))
 					;
 
-		 module snap_neck_translate_segment(r=bend_r, l=bend_l, a=bend_angle, n=0, h=h, dh=0, dr=0) {
+		 module snap_neck_translate_segment(r0=bend_r, l=bend_l, a=bend_angle, n=0, h=h, dh=0, dr=0) {
 					// Return length segment at from l_start to l_end
-					// r = radius of bend
+					// r0 = radius of first bend
 					// l = length (relative length of between each bend)
 					// a = angle of bend
 					// n = bend #
 
 					// h = root thickness at snap_head()
-					// dh = root thickness increase (per section 'n')
+					// dh = root thickness increase (per length) dh/dL
+					// dr = radius increase (over length) dr/dL (typically = 0 or dh/dL)
 
 					// children() ->
 					// apply to snap_neck(l_start, l_end);
@@ -420,15 +421,19 @@ module snap_rectangle(
 								 : undef ));
 
 					// Centers radius section of bend at position
-					function relative_translation_for_radius_to_center(r, a, n=0) =
+					function relative_translation_for_radius_to_center(r0, a, n=0, dr=dr) =
 							 (n==0 ? [0, 0, 0] :
-								let(a_n = bend_angle_restrict(a, n))
+								let(
+										 a_n = bend_angle_restrict(a, n),
+										 dl = bend_length(n=n, bend_l=bend_l, relative=false),
+										 r = r0 + dr*dl
+										 )
 								(n>=1 ? [r*sin(a_n),
 												 -r*cos(a_n),
 												 0] : undef ));
 
 					// Translates bend (based on bend radius; decoupled from length translation)
-					function relative_translation_for_bend(r, a, n=0, h=h, dh=dh, dr=dr) =
+					function relative_translation_for_bend(r0, a, n=0, h=h, dh=dh, dr=dr) =
 							 (n==0 ? [0, 0, 0] :
 								let(a_n = bend_angle_restrict(a, n-1),
 										reverse = reverse_condition(a, n-1),
@@ -443,8 +448,8 @@ module snap_rectangle(
 										dy_h = reverse_flip ? h_n*cos(a) : 0,
 
 										prev_n=n-1,
-
-										hyp = 2*(r-dr)*sin(a/2)  // Hypotenuse for chord in bending arc
+										r = r0 + dr*dl,
+										hyp = 2*r*sin(a/2)  // Hypotenuse for chord in bending arc
 										 )
 
 								(n>=1 ?
@@ -457,7 +462,7 @@ module snap_rectangle(
 											dx_rot = dx*cos(-a_nr) - dy*sin(-a_nr),  // Rotate opposite direction (clockwise)
 											dy_rot = dx*sin(-a_nr) + dy*cos(-a_nr))
 									sum([ [-dx_rot, -dy_rot, 0] , // dx in reverse direction
-												relative_translation_for_bend(r=r-dr, a=a, n=prev_n, dr=dr)]) :
+												relative_translation_for_bend(r0=r0, a=a, n=prev_n, dr=dr)]) :
 
 									// Regular orientation
 									let(dx  = hyp*cos(a/2) + dx_h,  // Relative change in position (relative coords)
@@ -465,7 +470,7 @@ module snap_rectangle(
 											dx_rot = dx*cos(a_n) - dy*sin(a_n),  // Rotate change in position (relative, aligned rotation)
 											dy_rot = dx*sin(a_n) + dy*cos(a_n))
 									sum([ [-dx_rot, -dy_rot, 0] ,
-												relative_translation_for_bend(r=r-dr, a=a, n=prev_n, dr=dr)])
+												relative_translation_for_bend(r0=r0, a=a, n=prev_n, dr=dr)])
 											)
 								 : undef ));
 
@@ -476,9 +481,12 @@ module snap_rectangle(
 										a_n = bend_angle_restrict(a, n),
 										reverse = reverse_condition(a, n),
 										tl = relative_translation_for_length(l=l, a=a, n=n),
-										trc = relative_translation_for_radius_to_center(r=r, a=a, n=n),
-										trb = relative_translation_for_bend(r=r, a=a, n=n),
-										l_abs = bend_length(n=n, bend_l=l, relative=false)
+										trc = relative_translation_for_radius_to_center(r0=r0, a=a, n=n),
+										trb = relative_translation_for_bend(r0=r0, a=a, n=n),
+										dl = bend_length(n=n, bend_l=l, relative=false),
+
+										// Radius adjustments
+										r = r0 + dr*dl
 										) {
 										translate(tl)
 												 translate(trc)
@@ -487,13 +495,13 @@ module snap_rectangle(
 															mirror([1,0,0])                 // Mirror snap_neck() and snap_bend()
 																	 rotate(a=-a_n, v=[0,0,1])  // Rotate in opposite direction
 																	 translate([0,r,0])
-																	 translate([l_abs,0,0])
+																	 translate([dl,0,0])
 																	 children();
 												 }
 												 else {
 															rotate(a=a_n, v=[0,0,1])
 																	 translate([0,r,0])
-																	 translate([l_abs,0,0])
+																	 translate([dl,0,0])
 																	 children();
 												 }
 							 }
@@ -524,8 +532,7 @@ module snap_rectangle(
 										reverse_bend(bend_internal=bend_internal)
 												 for (n = [0:segments-1]){
 															let(
-																	 dh_over_n = dh_over_l*bend_length(n=n, bend_l=bend_l, relative=true),
-																	 bend_dr = bend_r ? 0 : dh_over_n,
+																	 bend_dr = bend_r ? 0 : dh_over_l,
 																	 bend_ra = bend_r_array[n+1],  // adjusted bend radius
 
 																	 // Length segments
@@ -533,8 +540,8 @@ module snap_rectangle(
 																	 l_end =  min(bend_length(n=n+1, bend_l=bend_l), l)
 																	 )
 																	 color(colors[n%len(colors)])
-																	 snap_neck_translate_segment(r=bend_ra, l=bend_l, a=bend_angle, n=n,
-																															 h=h2, dh=dh_over_n, dr=bend_dr) {
+																	 snap_neck_translate_segment(r0=bend_r_array[0], l=bend_l, a=bend_angle, n=n,
+																															 h=h2, dh=dh_over_l, dr=bend_dr) {
 																	 snap_neck(l_start=l_start, l_end=l_end, h2=h2, b2=b2);
 																	 if (n < segments - 1)  // Exclude radius on last segment
 																				snap_bend(r=bend_ra, l=l_end, a=bend_angle) snap_neck(h2=h2, b2=b2);
