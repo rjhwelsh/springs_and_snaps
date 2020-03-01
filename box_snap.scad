@@ -337,10 +337,21 @@ module snap_rectangle(
 						bend_l :
 						bend_l*n ) :
 					(l_is_arr ?
+					 let( bend_l_max = len(bend_l) - 1,
+								bend_l_last = bend_l[bend_l_max]
+								)
+					 // First bend length (always 0)
 					 ( n == 0 ? 0 :
-						 ( relative ?
+						 // After exceeding last bend length value
+						 ( n > bend_l_max ?
+							 ( relative ? bend_length(n=n-bend_l_max, bend_l=bend_l_last, relative=true) :
+								 ( bend_length(n=bend_l_max, bend_l=bend_l, relative=false) +
+									 bend_length(n=n-bend_l_max, bend_l=bend_l_last, relative=false))) :
+							 // Normal point in bend array
+							 ( relative ?
 							 bend_l[n] :
-							 sum(slice(bend_l,0,n)))) :
+							 sum(slice(bend_l,0,n))
+										))) :
 					 undef))
 				 ;
 
@@ -348,7 +359,17 @@ module snap_rectangle(
 				 // Return the number of bends specified
 				 // bend_l = length or list of length at which to bend snap connector
 				 // l = total length of the snap connector
-				 ceil(l/bend_l);
+				 let( l_is_num = is_num(bend_l),
+							l_is_arr = is_list(bend_l)
+							)
+				 (l_is_num ? ceil(l/bend_l) :
+					(l_is_arr ?
+					 let( remainder = l - sum(bend_l),
+								bend_l_last = bend_l[len(bend_l)-1]
+								)
+					 len(bend_l) + count_bends(bend_l=bend_l_last, l=remainder) :
+					 undef))
+				 ;
 
 		module snap_neck_translate_segment(r=bend_r, l=bend_l, a=bend_angle, n=0, h=h, dh=0, dr=0) {
 				 // Return length segment at from l_start to l_end
