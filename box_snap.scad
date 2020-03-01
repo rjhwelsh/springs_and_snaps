@@ -349,6 +349,7 @@ module snap_rectangle(
 							let(b =  (a*n)%360) b < 180 ? b : 180 - b; // Maximum angle is 360, 0->180, 0->-180
 
 				 // Recursive translation functions
+				 // Translates length (based on length/angle; decoupled from bend translation)
 				 function relative_translation_for_length(l, a, n=0) =
 							(n==0 ? [0, 0, 0] :
 							 let(l_rel=l/n,
@@ -368,6 +369,7 @@ module snap_rectangle(
 										 )
 								: undef ));
 
+				 // Centers radius section of bend at position
 				 function relative_translation_for_radius_to_center(r, a, n=0) =
 							(n==0 ? [0, 0, 0] :
 							 let(a_n = bend_angle_restrict(a, n))
@@ -375,6 +377,7 @@ module snap_rectangle(
 												-r*cos(a_n),
 												0] : undef ));
 
+				 // Translates bend (based on bend radius; decoupled from length translation)
 				 function relative_translation_for_bend(r, a, n=0, h=h, dh=dh, dr=dr) =
 							(n==0 ? [0, 0, 0] :
 							 let(a_n = bend_angle_restrict(a, n-1),
