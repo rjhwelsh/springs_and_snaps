@@ -329,8 +329,8 @@ module snap_rectangle(
 				 // bend_l = length or list of lengths at which to bend snap connector
 				 // n = the nth bend of the snap connector
 				 // relative = return relative bend
-				 let( l_is_num = is_num(l),
-							l_is_arr = is_list(l)
+				 let( l_is_num = is_num(bend_l),
+							l_is_arr = is_list(bend_l)
 							)
 				 (l_is_num ?
 					( relative ?
