@@ -378,8 +378,8 @@ module snap_rectangle(
 				 // Translates length (based on length/angle; decoupled from bend translation)
 				 function relative_translation_for_length(l, a, n=0) =
 							(n==0 ? [0, 0, 0] :
-							 let(l_rel=l,
-									 l_prev=l_rel*(n-1),
+							 let(l_rel=bend_length(n=n, bend_l=l, relative=true),
+									 l_prev=bend_length(n=n-1, bend_l=l, relative=false),
 									 a_n = bend_angle_restrict(a, n-1),
 									 reverse = reverse_condition(a, n-1))
 							 (n>=1 ?
@@ -387,11 +387,11 @@ module snap_rectangle(
 								 sum([ [l_rel*cos(a_n),
 												l_rel*sin(a_n),
 												0] ,
-											 relative_translation_for_length(l=l_prev, a=a, n=n-1)]) :
+											 relative_translation_for_length(l=l, a=a, n=n-1)]) :
 								 sum([ [-l_rel*cos(a_n),
 												-l_rel*sin(a_n),
 												0] ,
-											 relative_translation_for_length(l=l_prev, a=a, n=n-1)])
+											 relative_translation_for_length(l=l, a=a, n=n-1)])
 										 )
 								: undef ));
 
@@ -450,7 +450,8 @@ module snap_rectangle(
 									 reverse = reverse_condition(a, n),
 									 tl = relative_translation_for_length(l=l, a=a, n=n),
 									 trc = relative_translation_for_radius_to_center(r=r, a=a, n=n),
-									 trb = relative_translation_for_bend(r=r, a=a, n=n)
+									 trb = relative_translation_for_bend(r=r, a=a, n=n),
+									 l_abs = bend_length(n=n, bend_l=l, relative=false)
 									 ) {
 									 translate(tl)
 												translate(trc)
@@ -459,13 +460,13 @@ module snap_rectangle(
 														 mirror([1,0,0])                 // Mirror snap_neck() and snap_bend()
 																	rotate(a=-a_n, v=[0,0,1])  // Rotate in opposite direction
 																	translate([0,r,0])
-																	translate([l,0,0])
+																	translate([l_abs,0,0])
 																	children();
 												}
 												else {
 														 rotate(a=a_n, v=[0,0,1])
 																	translate([0,r,0])
-																	translate([l,0,0])
+																	translate([l_abs,0,0])
 																	children();
 												}
 							}
