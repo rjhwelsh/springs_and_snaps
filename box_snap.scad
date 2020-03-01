@@ -475,14 +475,13 @@ module snap_rectangle(
 				 if (is_num(bend_l)) {
 							/* echo("bend_l is a number!"); */
 							let(
-									 segments=ceil(l/bend_l),
-									 //colors=["red", "green", "blue", "purple", "orange"],
+									 segments=count_bends(bend_l, l),
 									 bend_l=l/segments,
 									 colors=["red", "green", "blue", "purple", "orange"],
 									 dh = h - h2,
 									 dh_over_n = l/segments*tan(atan(dh/l)),
 									 bend_r_array = [ for (n = [0:segments]) bend_r ? bend_r : y/segments + h2 + (n+1)*dh_over_n]
-									 ) {
+												) {
 									 reverse_bend(bend_internal=bend_internal)
 												for (n = [0:segments-1]){
 														 let(
