@@ -462,6 +462,7 @@ module snap_rectangle(
 									 dh_over_n = l/segments*tan(atan(dh/l)),
 									 bend_r_array = [ for (n = [0:segments]) bend_r ? bend_r : y/segments + h2 + (n+1)*dh_over_n]
 									 ) {
+									 reverse_bend(bend_internal=bend_internal)
 												for (n = [0:segments-1]){
 														 let(
 																	bend_r0 = bend_r ? bend_r : y/segments + h2 + dh_over_n,
@@ -475,11 +476,11 @@ module snap_rectangle(
 																	snap_bend(r=bend_ra, l=(n+1)*l/segments, a=bend_angle) snap_neck(h2=h2, b2=b2);
 														 }
 												}
-												// Bend information
-												echo(border2);
-												echo("Bend radius sequence, mm =", bend_r_array);
-												echo("Bend radius, TOTAL=", sum(bend_r_array));
-												echo(border2);
+									 // Bend information
+									 echo(border2);
+									 echo("Bend radius sequence, mm =", bend_r_array);
+									 echo("Bend radius, TOTAL=", sum(bend_r_array));
+									 echo(border2);
 							}}
 				 else {
 							snap_neck(l_start=0, l_end=l, h2=h2, b2=b2);
