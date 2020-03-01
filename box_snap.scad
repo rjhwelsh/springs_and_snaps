@@ -513,15 +513,18 @@ module snap_rectangle(
 										segments=count_bends(bend_l, l),
 										colors=["red", "green", "blue", "purple", "orange"],
 										dh = h - h2,
-										dh_over_n = l/segments*tan(atan(dh/l)),
-										bend_r_array = [ for (n = [0:segments]) bend_r ? bend_r : y/segments + h2 + (n+1)*dh_over_n]
+										dh_over_l = dh/l,
+										bend_r_array = [ for (n = [0:segments])
+															bend_r ?
+																	 bend_r :
+																	 y/segments + h2 + dh_over_l*bend_length(n=n, bend_l=bend_l, relative=false)]
 										) {
 										reverse_bend(bend_internal=bend_internal)
 												 for (n = [0:segments-1]){
 															let(
-																	 bend_r0 = bend_r ? bend_r : y/segments + h2 + dh_over_n,
+																	 dh_over_n = dh_over_l*bend_length(n=n, bend_l=bend_l, relative=true),
 																	 bend_dr = bend_r ? 0 : dh_over_n,
-																	 bend_ra = bend_r_array[n],  // adjusted bend radius
+																	 bend_ra = bend_r_array[n+1],  // adjusted bend radius
 
 																	 // Length segments
 																	 l_start = bend_length(n=n, bend_l=bend_l),
