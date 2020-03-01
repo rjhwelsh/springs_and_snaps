@@ -367,9 +367,10 @@ module snap_rectangle(
 					(l_is_num ? ceil(l/bend_l) :
 					 (l_is_arr ?
 						let( remainder = l - sum(bend_l),
-								 bend_l_last = bend_l[len(bend_l)-1]
+								 bend_l_max = len(bend_l) - 1,
+								 bend_l_last = bend_l[bend_l_max]
 								 )
-						len(bend_l) + count_bends(bend_l=bend_l_last, l=remainder) :
+						bend_l_max + count_bends(bend_l=bend_l_last, l=remainder) :
 						undef))
 					;
 
