@@ -524,7 +524,7 @@ module snap_rectangle(
 
 																	 // Length segments
 																	 l_start = bend_length(n=n, bend_l=bend_l),
-																	 l_end = bend_length(n=n+1, bend_l=bend_l)
+																	 l_end =  min(bend_length(n=n+1, bend_l=bend_l), l)
 																	 )
 																	 color(colors[n%len(colors)])
 																	 snap_neck_translate_segment(r=bend_ra, l=bend_l, a=bend_angle, n=n,
