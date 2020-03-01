@@ -334,6 +334,12 @@ module snap_rectangle(
 				 (l_is_num ? l/n : undef)
 				 ;
 
+		function count_bends(bend_l, l) =
+				 // Return the number of bends specified
+				 // bend_l = length or list of length at which to bend snap connector
+				 // l = total length of the snap connector
+				 ceil(l/bend_l);
+
 		module snap_neck_translate_segment(r=bend_r, l=bend_l, a=bend_angle, n=0, h=h, dh=0, dr=0) {
 				 // Return length segment at from l_start to l_end
 				 // r = radius of bend
