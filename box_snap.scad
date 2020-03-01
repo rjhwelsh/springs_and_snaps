@@ -343,7 +343,7 @@ module snap_rectangle(
 		module snap_neck_translate_segment(r=bend_r, l=bend_l, a=bend_angle, n=0, h=h, dh=0, dr=0) {
 				 // Return length segment at from l_start to l_end
 				 // r = radius of bend
-				 // l = length (at which bend begins)
+				 // l = length (relative length of between each bend)
 				 // a = angle of bend
 				 // n = bend #
 
@@ -368,7 +368,7 @@ module snap_rectangle(
 				 // Translates length (based on length/angle; decoupled from bend translation)
 				 function relative_translation_for_length(l, a, n=0) =
 							(n==0 ? [0, 0, 0] :
-							 let(l_rel=l/n,
+							 let(l_rel=l,
 									 l_prev=l_rel*(n-1),
 									 a_n = bend_angle_restrict(a, n-1),
 									 reverse = reverse_condition(a, n-1))
@@ -490,7 +490,7 @@ module snap_rectangle(
 																	bend_ra = bend_r_array[n]  // adjusted bend radius
 																	)
 																	color(colors[n%len(colors)])
-																	snap_neck_translate_segment(r=bend_ra, l=n*bend_l, a=bend_angle, n=n,
+																	snap_neck_translate_segment(r=bend_ra, l=bend_l, a=bend_angle, n=n,
 																															h=h2, dh=dh_over_n, dr=bend_dr) {
 																	snap_neck(l_start=n*bend_l, l_end=(n+1)*bend_l, h2=h2, b2=b2);
 																	snap_bend(r=bend_ra, l=(n+1)*l/segments, a=bend_angle) snap_neck(h2=h2, b2=b2);
