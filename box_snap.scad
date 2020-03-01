@@ -434,8 +434,11 @@ module snap_rectangle(
 										reverse = reverse_condition(a, n-1),
 										reverse_flip = reverse_condition(a, n) != reverse,
 
+										// Current change in length from start
+										dl = bend_length(n=n, bend_l=bend_l, relative=false),
+
 										// Adjust h_n according to thickness at each step
-										h_n  = h + n*dh,
+										h_n  = h + dh*dl,
 										dx_h = reverse_flip ? -h_n*sin(a) : 0,
 										dy_h = reverse_flip ? h_n*cos(a) : 0,
 
