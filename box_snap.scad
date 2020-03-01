@@ -477,6 +477,7 @@ module snap_rectangle(
 							let(
 									 segments=ceil(l/bend_l),
 									 //colors=["red", "green", "blue", "purple", "orange"],
+									 bend_l=l/segments,
 									 colors=["red", "green", "blue", "purple", "orange"],
 									 dh = h - h2,
 									 dh_over_n = l/segments*tan(atan(dh/l)),
@@ -489,10 +490,10 @@ module snap_rectangle(
 																	bend_dr = bend_r ? 0 : dh_over_n,
 																	bend_ra = bend_r_array[n]  // adjusted bend radius
 																	)
-																	snap_neck_translate_segment(r=bend_ra, l=n*l/segments, a=bend_angle, n=n,
 																	color(colors[n%len(colors)])
+																	snap_neck_translate_segment(r=bend_ra, l=n*bend_l, a=bend_angle, n=n,
 																															h=h2, dh=dh_over_n, dr=bend_dr) {
-																	snap_neck(l_start=n*l/segments, l_end=(n+1)*l/segments, h2=h2, b2=b2);
+																	snap_neck(l_start=n*bend_l, l_end=(n+1)*bend_l, h2=h2, b2=b2);
 																	snap_bend(r=bend_ra, l=(n+1)*l/segments, a=bend_angle) snap_neck(h2=h2, b2=b2);
 														 }
 												}
