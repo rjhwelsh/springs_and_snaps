@@ -530,7 +530,8 @@ module snap_rectangle(
 																	 snap_neck_translate_segment(r=bend_ra, l=bend_l, a=bend_angle, n=n,
 																															 h=h2, dh=dh_over_n, dr=bend_dr) {
 																	 snap_neck(l_start=l_start, l_end=l_end, h2=h2, b2=b2);
-																	 snap_bend(r=bend_ra, l=l_end, a=bend_angle) snap_neck(h2=h2, b2=b2);
+																	 if (n < segments - 1)  // Exclude radius on last segment
+																				snap_bend(r=bend_ra, l=l_end, a=bend_angle) snap_neck(h2=h2, b2=b2);
 
 																	 echo("l_start=", l_start);
 																	 echo("l_end=", l_end);
