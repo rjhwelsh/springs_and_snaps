@@ -393,7 +393,7 @@ module snap_rectangle(
 												-r*cos(a_n),
 												0] : undef ));
 
-				 // Translates bend (based on bend radius; decoupled from length translation)
+
 				 function relative_translation_for_bend(r, a, n=0, h=h, dh=dh, dr=dr) =
 							(n==0 ? [0, 0, 0] :
 							 let(a_n = bend_angle_restrict(a, n-1),
