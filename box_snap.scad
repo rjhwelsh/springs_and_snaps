@@ -215,7 +215,7 @@ module snap_rectangle(
 
 		 // length of head, total
 		 echo("Length of head (mm) = ", t + i_t + r_t);
-		 echo("Total length (mm) = ", t + i_t + r_t + l);
+		 echo("Total length (including snap head) (mm) = ", t + i_t + r_t + l);
 
 		 // mating force
 		 i_W = (i_W ? i_W : mating_force(P, i_A, mu));
