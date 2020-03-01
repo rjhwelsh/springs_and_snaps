@@ -224,6 +224,8 @@ module snap_rectangle(
 		echo("Removal force (N) = ", r_W);
 		echo(border2);
 
+		// Add 0 to front of bend_l, array only
+		bend_l = is_num(bend_l) ? bend_l : [ for (i=[-1:len(bend_l)-1]) i < 0 ? 0 : bend_l[i]];
 
 		module snap_head(h=h, a=0, b=b) {
 				 // h = depth of snap head (from (0,0)) default:h
