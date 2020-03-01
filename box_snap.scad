@@ -590,8 +590,8 @@ echo(border2);
 // Demo
 snap_rectangle(y=2, b=10, h=5, P=1, mu=0.5, geometry=1, t=1, title="Geometry 1", bend_l=[40,20,10], bend_angle=180);
 
-translate([0,-40,0])
+translate([0,-100,0])
 snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=2, t=1, title="Geometry 2", bend_l=20, bend_internal=true);
 
-translate([0,-80,0])
+translate([0,-180,0])
 snap_rectangle(y=1, b=10, h=5, P=1, mu=0.5, geometry=3, t=1, title="Geometry 3", bend_l=20, bend_angle=90);
