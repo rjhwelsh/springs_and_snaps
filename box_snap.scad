@@ -508,7 +508,6 @@ module snap_rectangle(
 					}
 
 					if (is_bool(bend_l) == false) {
-							 /* echo("bend_l is a number!"); */
 							 let(
 										segments=count_bends(bend_l, l),
 										colors=["red", "green", "blue", "purple", "orange"],
@@ -536,9 +535,6 @@ module snap_rectangle(
 																	 snap_neck(l_start=l_start, l_end=l_end, h2=h2, b2=b2);
 																	 if (n < segments - 1)  // Exclude radius on last segment
 																				snap_bend(r=bend_ra, l=l_end, a=bend_angle) snap_neck(h2=h2, b2=b2);
-
-																	 echo("l_start=", l_start);
-																	 echo("l_end=", l_end);
 															}
 												 }
 										// Bend information
