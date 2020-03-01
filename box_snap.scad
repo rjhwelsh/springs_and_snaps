@@ -134,6 +134,7 @@ module snap_rectangle(
 		bend_r=false, // bend radius (to exterior of snap), mm
 		bend_l=false, // bend length, mm (does not include radius)
 		bend_angle=180, // bend angle, deg
+		bend_internal=false, // bend towards inside of snap (instead of outside)
     // Material properties
     Sy=Sy, // yield strength, MPa
     E=E,   // elastic modulus, MPa
