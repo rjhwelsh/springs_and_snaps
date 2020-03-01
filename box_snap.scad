@@ -444,6 +444,15 @@ module snap_rectangle(
 		}
 
 		module snap_main(h2=h, b2=b) {
+
+				 module reverse_bend(bend_internal=bend_internal){
+							if (bend_internal) {
+									 translate([0,-h2,0])
+												mirror([0,1,0])
+												children(); }
+							else { children(); }
+				 }
+
 				 if (is_num(bend_l)) {
 							/* echo("bend_l is a number!"); */
 							let(
