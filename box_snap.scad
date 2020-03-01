@@ -324,6 +324,16 @@ module snap_rectangle(
 							children();                  //snap_neck()
 		}
 
+		function bend_length(bend_l, n) =
+				 // Absolute length along snap for each bend (excludes radius perimeters)
+				 // bend_l = length or list of lengths at which to bend snap connector
+				 // n = the nth bend of the snap connector
+				 let( l_is_num = is_num(l),
+							l_is_arr = is_list(l)
+							)
+				 (l_is_num ? l/n : undef)
+				 ;
+
 		module snap_neck_translate_segment(r=bend_r, l=bend_l, a=bend_angle, n=0, h=h, dh=0, dr=0) {
 				 // Return length segment at from l_start to l_end
 				 // r = radius of bend
