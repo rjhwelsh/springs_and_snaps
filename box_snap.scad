@@ -2,27 +2,15 @@
 
 use<../extended_functions/extended_functions.scad>
 // Provides sum(vList) for general vector summation
+use<mechanics.scad>
+// Use stress(), strain()
+include<material/pla.scad>
 
 // Tolerance
 $fs = 0.2;
 
 // Factor of safety
 FOS = 10;
-
-// Material properties
-// ABS / PLA
-Sy = 35.0; // MPa
-E = 2.3*1000; // MPa
-
-function stress(
-		 F, // Force, N
-		 A  // Area, mm^2
-		 ) = F/A; // stress, MPa
-
-function strain(
-		 S, // Stress, MPa
-		 E, // Elastic modulus, MPa
-		 ) = S / E ; // strain, %/100
 
 // Permissible deflection
 function permissible_deflection(
