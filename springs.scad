@@ -15,7 +15,7 @@
 // License along with this library; if not, write to the Free Software
 // Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
 
-use<../extended_functions/extended_functions.scad>
+use<../openscad_extra/extended_functions.scad>
 use<mechanics.scad>
 include<material/pla.scad>
 
