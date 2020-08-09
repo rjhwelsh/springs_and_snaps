@@ -173,7 +173,7 @@ module snap_rectangle(
      e_max = (e_max ? e_max : strain(S=Sy/FOS, E=E));
      echo(str("Strain (max) (%/100) = ", e_max));
      FOS = ( e_max ? Sy/(E*e_max) : FOS );
-     echo(str("Factor of Safety = ", FOS));
+     echo(str("Factor of Safety (min) = ", FOS));
      echo(border2);
 
      // permissible deflection, mm
@@ -190,6 +190,11 @@ module snap_rectangle(
 						 h=h,
 						 K=K);
      echo(str("Actual strain (%/100) = ", calc_e));
+
+     // Actual FOS
+     calc_FOS = Sy/(E*calc_e);
+     echo(str("Actual Factor of Safety = ", calc_FOS));
+     echo(border2);
 
      // thickness @ root, mm
      h = ( h ? h : permissible_deflection_solve_for_h(e_max, l, y, K));
