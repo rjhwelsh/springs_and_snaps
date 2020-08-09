@@ -137,7 +137,7 @@ module snap_rectangle(
      r_A=90, // removal angle, deg
      // Bend geometry
      bend_r=false, // bend radius (to exterior of snap), mm
-     bend_l=false, // bend length, mm (does not include radius)
+     bend_l=false, // bend length, mm (does not include radius) (can specify multiple values in an array)
      bend_angle=180, // bend angle, deg
      bend_internal=false, // bend towards inside of snap (instead of outside)
      // Material properties
