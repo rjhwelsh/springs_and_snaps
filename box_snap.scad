@@ -38,6 +38,8 @@ function permissible_deflection_solve_for_h(e_max, l, y, K=0.67) =
      (K*e_max)*pow(l,2)/y;
 function permissible_deflection_solve_for_l(e_max, h, y, K=0.67) =
      pow(y*h/(K*e_max),0.5);
+function permissible_deflection_solve_for_e_max(y, l, h, K=0.67) =
+     (y*h/pow(l,2))/K;
 
 // Deflection force
 function deflection_force(
