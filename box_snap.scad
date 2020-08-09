@@ -171,9 +171,9 @@ module snap_rectangle(
 
      // strain (max permissible)
      e_max = (e_max ? e_max : strain(S=Sy/FOS, E=E));
-     echo("Strain (max) (%/100) = ", e_max);
+     echo(str("Strain (max) (%/100) = ", e_max));
      FOS = ( e_max ? Sy/(E*e_max) : FOS );
-     echo("Factor of Safety = ", FOS);
+     echo(str("Factor of Safety = ", FOS));
      echo(border2);
 
      // permissible deflection, mm
@@ -182,7 +182,8 @@ module snap_rectangle(
 		l=l,
 		h=h,
 		K=K));
-     echo("Permissible deflection (mm) = ", y);
+     echo(str("Permissible deflection (mm) = ", y));
+
      // Actual strain
      calc_e_max = permissible_deflection_solve_for_e_max(y=y,
 							 l=l,
@@ -192,18 +193,18 @@ module snap_rectangle(
 
      // thickness @ root, mm
      h = ( h ? h : permissible_deflection_solve_for_h(e_max, l, y, K));
-     echo("Thickness @ root (mm) = ", h);
+     echo(str("Thickness @ root (mm) = ", h));
 
      // length of arm, mm
      l = ( l ? l : permissible_deflection_solve_for_l(e_max, h, y, K));
-     echo("Length of arm (mm) = ", l);
-     echo("Elongation (max) (mm) = ", l*e_max);
+     echo(str("Length of arm (mm) = ", l));
+     echo(str("Elongation (max) (mm) = ", l*e_max));
 
      // width @ root, mm
      b = ( b ? b : section_modulus_of_box_solve_for_b(
 		h,
 		Z = P*l/E/e_max));
-     echo("Width @ root (mm) = ", b);
+     echo(str("Width @ root (mm) = ", b));
      echo(border2);
 
      // deflection force
@@ -212,27 +213,27 @@ module snap_rectangle(
 	  h);
 
      P = ( P ? P : deflection_force(e_max, l, E, Z));
-     echo("Deflection force (N) = ", P);
+     echo(str("Deflection force (N) = ", P));
 
      // mating angles
      i_A = ( i_W ? mating_force_solve_for_A(P, mu, i_W) : i_A);
      r_A = ( r_W ? mating_force_solve_for_A(P, mu, r_W) : r_A);
-     echo("Insertion angle (deg) = ", i_A);
-     echo("Removal angle (deg) = ", r_A);
+     echo(str("Insertion angle (deg) = ", i_A));
+     echo(str("Removal angle (deg) = ", r_A));
 
      // head insertion travel
      i_t = y * tan(90 - i_A); // parallel travel on insertion
      r_t = y * tan(90 - r_A); // parallel travel on removal
 
      // length of head, total
-     echo("Length of head (mm) = ", t + i_t + r_t);
-     echo("Total length (including snap head) (mm) = ", t + i_t + r_t + l);
+     echo(str("Length of head (mm) = ", t + i_t + r_t));
+     echo(str("Total length (including snap head) (mm) = ", t + i_t + r_t + l));
 
      // mating force
      i_W = (i_W ? i_W : mating_force(P, i_A, mu));
      r_W = (r_W ? r_W : mating_force(P, r_A, mu));
-     echo("Insertion force (N) = ", i_W);
-     echo("Removal force (N) = ", r_W);
+     echo(str("Insertion force (N) = ", i_W));
+     echo(str("Removal force (N) = ", r_W));
      echo(border2);
 
      // Add 0 to front of bend_l, array only
@@ -560,9 +561,9 @@ module snap_rectangle(
 			 }
 		    // Bend information
 		    echo(border2);
-		    echo("Bend radius sequence, mm =", bend_r_array);
-		    echo("Bend radius, TOTAL=", sum(bend_r_array));
-		    echo("Bend radius, AVG  =", sum(bend_r_array)/len(bend_r_array));
+		    echo(str("Bend radius sequence, mm =", bend_r_array));
+		    echo(str("Bend radius, TOTAL=", sum(bend_r_array)));
+		    echo(str("Bend radius, AVG  =", sum(bend_r_array)/len(bend_r_array)));
 		    echo(border2);
 	       }}
 	  else {
@@ -598,7 +599,7 @@ module snap_rectangle(
      msg1 = "Warning! Exceeds FOS";
      msg2 = "Warning!! Exceeds Yield Stress";
 
-     echo("Insertion stress (MPa)", stress(i_W, Area));
+     echo(str("Insertion stress (MPa) = ", stress(i_W, Area)));
 
 // assert( stress(i_W, Area) > Sy , msg2);
 // assert( stress(i_W, Area) > Sy/FOS, msg1);
@@ -607,11 +608,11 @@ module snap_rectangle(
      else if ( stress(i_W, Area) > Sy/FOS ) {echo(msg1);}
 
 
-     echo("Removal stress (MPa)", stress(r_W, Area));
+     echo(str("Removal stress (MPa) = ", stress(r_W, Area)));
      if ( stress(r_W, Area) > Sy ) {echo(msg2);}
      else if ( stress(r_W, Area) > Sy/FOS ) {echo(msg1);}
 
-     echo("Axial yield force (N) = ", Sy*Area);
+     echo(str("Axial yield force (N) = ", Sy*Area));
      echo(border2);
 }
 
