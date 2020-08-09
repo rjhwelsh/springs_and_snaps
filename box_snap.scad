@@ -183,6 +183,12 @@ module snap_rectangle(
 		h=h,
 		K=K));
      echo("Permissible deflection (mm) = ", y);
+     // Actual strain
+     calc_e_max = permissible_deflection_solve_for_e_max(y=y,
+							 l=l,
+							 h=h,
+							 K=K);
+     echo(str("Actual strain (%/100) = ", calc_e_max));
 
      // thickness @ root, mm
      h = ( h ? h : permissible_deflection_solve_for_h(e_max, l, y, K));
