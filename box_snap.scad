@@ -184,18 +184,6 @@ module snap_rectangle(
 		K=K));
      echo(str("Permissible deflection (mm) = ", y));
 
-     // Actual strain
-     calc_e = permissible_deflection_solve_for_e(y=y,
-						 l=l,
-						 h=h,
-						 K=K);
-     echo(str("Actual strain (%/100) = ", calc_e));
-
-     // Actual FOS
-     calc_FOS = Sy/(E*calc_e);
-     echo(str("Actual Factor of Safety = ", calc_FOS));
-     echo(border2);
-
      // thickness @ root, mm
      h = ( h ? h : permissible_deflection_solve_for_h(e_max, l, y, K));
      echo(str("Thickness @ root (mm) = ", h));
@@ -210,6 +198,18 @@ module snap_rectangle(
 		h,
 		Z = P*l/E/e_max));
      echo(str("Width @ root (mm) = ", b));
+     echo(border2);
+
+     // Actual strain
+     calc_e = permissible_deflection_solve_for_e(y=y,
+						 l=l,
+						 h=h,
+						 K=K);
+     echo(str("Actual strain (%/100) = ", calc_e));
+
+     // Actual FOS
+     calc_FOS = Sy/(E*calc_e);
+     echo(str("Actual Factor of Safety = ", calc_FOS));
      echo(border2);
 
      // deflection force
